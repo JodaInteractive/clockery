@@ -22,7 +22,7 @@ env:
   PACKAGE_NAME: clockery
   # The itch.io page to upload to, in the format: `user-name/project-name`.
   # Comment this out to disable.
-  ITCH_TARGET: joda-interactive/clockery
+  ITCH_TARGET: joda-interactive/tickery-tockery-panic-at-the-clockery
   # The organization or author that owns the rights to the game.
   OWNER: joda-interactive
   # The path to the assets directory.

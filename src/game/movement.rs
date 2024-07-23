@@ -3,9 +3,11 @@
 //! If you want to move the player in a smoother way,
 //! consider using a [fixed timestep](https://github.com/bevyengine/bevy/blob/latest/examples/movement/physics_in_fixed_timestep.rs).
 
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::prelude::*;
 
 use crate::AppSet;
+
+use super::spawn::clock::InteractClock;
 
 pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
@@ -15,14 +17,7 @@ pub(super) fn plugin(app: &mut App) {
         record_movement_controller.in_set(AppSet::RecordInput),
     );
 
-    // Apply movement based on controls.
-    app.register_type::<(Movement, WrapWithinWindow)>();
-    app.add_systems(
-        Update,
-        (apply_movement, wrap_within_window)
-            .chain()
-            .in_set(AppSet::Update),
-    );
+    app.add_systems(FixedUpdate, (apply_movement).chain().in_set(AppSet::Update));
 }
 
 #[derive(Component, Reflect, Default)]
@@ -33,14 +28,7 @@ fn record_movement_controller(
     input: Res<ButtonInput<KeyCode>>,
     mut controller_query: Query<&mut MovementController>,
 ) {
-    // Collect directional input.
     let mut intent = Vec2::ZERO;
-    if input.pressed(KeyCode::KeyW) || input.pressed(KeyCode::ArrowUp) {
-        intent.y += 1.0;
-    }
-    if input.pressed(KeyCode::KeyS) || input.pressed(KeyCode::ArrowDown) {
-        intent.y -= 1.0;
-    }
     if input.pressed(KeyCode::KeyA) || input.pressed(KeyCode::ArrowLeft) {
         intent.x -= 1.0;
     }
@@ -48,49 +36,83 @@ fn record_movement_controller(
         intent.x += 1.0;
     }
 
-    // Normalize so that diagonal movement has the same speed as
-    // horizontal and vertical movement.
     let intent = intent.normalize_or_zero();
 
-    // Apply movement intent to controllers.
     for mut controller in &mut controller_query {
         controller.0 = intent;
     }
 }
 
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub struct Movement {
-    /// Since Bevy's default 2D camera setup is scaled such that
-    /// one unit is one pixel, you can think of this as
-    /// "How many pixels per second should the player move?"
-    /// Note that physics engines may use different unit/pixel ratios.
-    pub speed: f32,
-}
-
 fn apply_movement(
-    time: Res<Time>,
-    mut movement_query: Query<(&MovementController, &Movement, &mut Transform)>,
+    mut movement_query: Query<(&MovementController, &mut Transform), Without<InteractClock>>,
+    mut clocks: Query<(Entity, &mut Transform), With<InteractClock>>,
 ) {
-    for (controller, movement, mut transform) in &mut movement_query {
-        let velocity = movement.speed * controller.0;
-        transform.translation += velocity.extend(0.0) * time.delta_seconds();
+    // if there are no clocks, short-circuit
+    let clock_count = clocks.iter().count();
+    if clock_count == 1 {
+        return;
     }
-}
 
-#[derive(Component, Reflect)]
-#[reflect(Component)]
-pub struct WrapWithinWindow;
+    // get all clocks and their positions
+    let clock_positions = clocks
+        .iter()
+        .map(|(e, t)| (e, t.translation.x))
+        .collect::<Vec<(Entity, f32)>>();
 
-fn wrap_within_window(
-    window_query: Query<&Window, With<PrimaryWindow>>,
-    mut wrap_query: Query<&mut Transform, With<WrapWithinWindow>>,
-) {
-    let size = window_query.single().size() + 256.0;
-    let half_size = size / 2.0;
-    for mut transform in &mut wrap_query {
-        let position = transform.translation.xy();
-        let wrapped = (position + half_size).rem_euclid(size) - half_size;
-        transform.translation = wrapped.extend(transform.translation.z);
+    // get the player's current position
+    let result = movement_query.get_single_mut();
+    if result.is_err() {
+        return;
+    }
+    let (movement, mut transform) = result.unwrap();
+    let character_position = transform.translation.x;
+
+    // get the current clock and it's position
+    let current_clock = clock_positions
+        .iter()
+        .enumerate()
+        .find(|(_, &x)| x.1 == character_position)
+        .unwrap();
+
+    // if the player wants to move right
+    if movement.0.x > 0.0 {
+        // check for clocks to the right
+        let right_clocks = clock_positions
+            .iter()
+            .filter(|&(_, x)| x > &character_position)
+            .count();
+        // if there are none, short-circuit
+        if right_clocks == 0 {
+            return;
+        }
+        // move the player to the next clock
+        transform.translation.x = clock_positions[current_clock.0 + 1].1;
+
+        // lower the clock the player was on
+        clocks.get_mut(current_clock.1 .0).unwrap().1.translation.y = -230.0;
+        // raise the clock the player is on
+        clocks
+            .get_mut(clock_positions[current_clock.0 + 1].0)
+            .unwrap()
+            .1
+            .translation
+            .y = -190.0;
+    } else if movement.0.x < 0.0 {
+        let left_clocks = clock_positions
+            .iter()
+            .filter(|&(_, x)| x < &character_position)
+            .count();
+        if left_clocks == 0 {
+            return;
+        }
+        transform.translation.x = clock_positions[current_clock.0 - 1].1;
+
+        clocks.get_mut(current_clock.1 .0).unwrap().1.translation.y = -230.0;
+        clocks
+            .get_mut(clock_positions[current_clock.0 - 1].0)
+            .unwrap()
+            .1
+            .translation
+            .y = -190.0;
     }
 }

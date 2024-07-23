@@ -18,6 +18,11 @@ pub(super) fn plugin(app: &mut App) {
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Reflect)]
 pub enum ImageKey {
     Ducky,
+    Table,       //2048x1024
+    Tockery,     //409x930
+    Clock,       //256
+    ClockHour,   //128
+    ClockMinute, //128
 }
 
 impl AssetKey for ImageKey {
@@ -27,15 +32,62 @@ impl AssetKey for ImageKey {
 impl FromWorld for HandleMap<ImageKey> {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
-        [(
-            ImageKey::Ducky,
-            asset_server.load_with_settings(
-                "images/ducky.png",
-                |settings: &mut ImageLoaderSettings| {
-                    settings.sampler = ImageSampler::nearest();
-                },
+        [
+            (
+                ImageKey::Ducky,
+                asset_server.load_with_settings(
+                    "images/ducky.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
             ),
-        )]
+            (
+                ImageKey::Tockery,
+                asset_server.load_with_settings(
+                    "images/tickery-tockery.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::Table,
+                asset_server.load_with_settings(
+                    "images/table.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::Clock,
+                asset_server.load_with_settings(
+                    "images/clock.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::ClockHour,
+                asset_server.load_with_settings(
+                    "images/clock-hour.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::ClockMinute,
+                asset_server.load_with_settings(
+                    "images/clock-minute.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+        ]
         .into()
     }
 }
