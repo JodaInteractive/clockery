@@ -280,9 +280,9 @@ fn spawn_main_clock(
         .spawn((
             Name::new("MainClock"),
             SpriteBundle {
-                texture: image_handles[&ImageKey::Clock].clone_weak(),
+                texture: image_handles[&ImageKey::MainClock].clone_weak(),
                 transform: Transform {
-                    translation: Vec3::new(0.0, 0.0, -30.0),
+                    translation: Vec3::new(0.0, 80.0, -30.0),
                     ..Default::default()
                 },
                 sprite: Sprite {
@@ -300,7 +300,7 @@ fn spawn_main_clock(
         .with_children(|parent| {
             parent.spawn((
                 SpriteBundle {
-                    texture: image_handles[&ImageKey::ClockHour].clone_weak(),
+                    texture: image_handles[&ImageKey::MainClockHour].clone_weak(),
                     transform: Transform {
                         translation: Vec3::new(0.0, 0.0, 1.0),
                         ..default()
@@ -316,7 +316,7 @@ fn spawn_main_clock(
 
             parent.spawn((
                 SpriteBundle {
-                    texture: image_handles[&ImageKey::ClockMinute].clone_weak(),
+                    texture: image_handles[&ImageKey::MainClockMinute].clone_weak(),
                     transform: Transform {
                         translation: Vec3::new(0.0, 0.0, 2.0),
                         ..default()

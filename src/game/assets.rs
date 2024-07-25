@@ -23,6 +23,9 @@ pub enum ImageKey {
     Clock,       //256
     ClockHour,   //128
     ClockMinute, //128
+    MainClock,
+    MainClockHour,
+    MainClockMinute,
 }
 
 impl AssetKey for ImageKey {
@@ -82,6 +85,33 @@ impl FromWorld for HandleMap<ImageKey> {
                 ImageKey::ClockMinute,
                 asset_server.load_with_settings(
                     "images/new-clock-minute.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::MainClock,
+                asset_server.load_with_settings(
+                    "images/main-clock.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::MainClockHour,
+                asset_server.load_with_settings(
+                    "images/main-clock-hour.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::MainClockMinute,
+                asset_server.load_with_settings(
+                    "images/main-clock-minute.png",
                     |settings: &mut ImageLoaderSettings| {
                         settings.sampler = ImageSampler::nearest();
                     },
