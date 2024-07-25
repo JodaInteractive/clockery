@@ -63,7 +63,7 @@ impl FromWorld for HandleMap<ImageKey> {
             (
                 ImageKey::Clock,
                 asset_server.load_with_settings(
-                    "images/clock.png",
+                    "images/new-clock.png",
                     |settings: &mut ImageLoaderSettings| {
                         settings.sampler = ImageSampler::nearest();
                     },
@@ -72,7 +72,7 @@ impl FromWorld for HandleMap<ImageKey> {
             (
                 ImageKey::ClockHour,
                 asset_server.load_with_settings(
-                    "images/clock-hour.png",
+                    "images/new-clock-hour.png",
                     |settings: &mut ImageLoaderSettings| {
                         settings.sampler = ImageSampler::nearest();
                     },
@@ -81,7 +81,7 @@ impl FromWorld for HandleMap<ImageKey> {
             (
                 ImageKey::ClockMinute,
                 asset_server.load_with_settings(
-                    "images/clock-minute.png",
+                    "images/new-clock-minute.png",
                     |settings: &mut ImageLoaderSettings| {
                         settings.sampler = ImageSampler::nearest();
                     },

@@ -5,114 +5,80 @@
 
 use bevy::prelude::*;
 
-use crate::AppSet;
-
-use super::spawn::clock::InteractClock;
+use super::spawn::clock::{Clock, ClockController, Interactable, Positions};
+use crate::{screen::Screen, AppSet};
 
 pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
     app.register_type::<MovementController>();
     app.add_systems(
         Update,
-        record_movement_controller.in_set(AppSet::RecordInput),
+        movement
+            .in_set(AppSet::RecordInput)
+            .run_if(in_state(Screen::Playing)),
     );
-
-    app.add_systems(FixedUpdate, (apply_movement).chain().in_set(AppSet::Update));
 }
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 pub struct MovementController(pub Vec2);
 
-fn record_movement_controller(
+fn movement(
     input: Res<ButtonInput<KeyCode>>,
-    mut controller_query: Query<&mut MovementController>,
+    mut controller_query: Query<(&mut ClockController, &mut Transform), Without<Clock>>,
+    mut clocks: Query<(&mut Transform, &mut Clock), With<Interactable>>,
+    positions: Res<Positions>,
 ) {
     let mut intent = Vec2::ZERO;
-    if input.pressed(KeyCode::KeyA) || input.pressed(KeyCode::ArrowLeft) {
+    if input.just_pressed(KeyCode::KeyA) || input.just_pressed(KeyCode::ArrowLeft) {
         intent.x -= 1.0;
     }
-    if input.pressed(KeyCode::KeyD) || input.pressed(KeyCode::ArrowRight) {
+    if input.just_pressed(KeyCode::KeyD) || input.just_pressed(KeyCode::ArrowRight) {
         intent.x += 1.0;
     }
 
     let intent = intent.normalize_or_zero();
 
-    for mut controller in &mut controller_query {
-        controller.0 = intent;
-    }
-}
+    let (mut controller, mut transform) = controller_query.get_single_mut().unwrap();
+    controller.direction = intent;
 
-fn apply_movement(
-    mut movement_query: Query<(&MovementController, &mut Transform), Without<InteractClock>>,
-    mut clocks: Query<(Entity, &mut Transform), With<InteractClock>>,
-) {
-    // if there are no clocks, short-circuit
-    let clock_count = clocks.iter().count();
-    if clock_count == 1 {
+    if controller.direction == Vec2::ZERO
+        || controller.index == 0 && controller.direction.x < 0.0
+        || controller.index == 6 && controller.direction.x > 0.0
+    {
         return;
     }
 
-    // get all clocks and their positions
-    let clock_positions = clocks
-        .iter()
-        .map(|(e, t)| (e, t.translation.x))
-        .collect::<Vec<(Entity, f32)>>();
+    let prev_x = transform.translation.x;
+    controller.index = (controller.index as i32 + controller.direction.x as i32) as usize;
+    let position = match controller.index {
+        0 => positions.clock_spawn,
+        1 => positions.clock_1,
+        2 => positions.clock_2,
+        3 => positions.clock_3,
+        4 => positions.clock_4,
+        5 => positions.clock_5,
+        6 => positions.oil_can,
+        _ => panic!("Invalid index"),
+    };
 
-    // get the player's current position
-    let result = movement_query.get_single_mut();
-    if result.is_err() {
-        return;
+    transform.translation.x = position.x;
+
+    let current_clock = clocks.iter_mut().find(|(t, _)| t.translation.x == prev_x);
+    if current_clock.is_some() {
+        let mut clock = current_clock.unwrap();
+        if !clock.1.is_main {
+            clock.0.translation.y = -220.0;
+        }
     }
-    let (movement, mut transform) = result.unwrap();
-    let character_position = transform.translation.x;
 
-    // get the current clock and it's position
-    let current_clock = clock_positions
-        .iter()
-        .enumerate()
-        .find(|(_, &x)| x.1 == character_position)
-        .unwrap();
-
-    // if the player wants to move right
-    if movement.0.x > 0.0 {
-        // check for clocks to the right
-        let right_clocks = clock_positions
-            .iter()
-            .filter(|&(_, x)| x > &character_position)
-            .count();
-        // if there are none, short-circuit
-        if right_clocks == 0 {
-            return;
+    let target_clock = clocks
+        .iter_mut()
+        .find(|(t, _)| t.translation.x == position.x);
+    if target_clock.is_some() {
+        let mut clock = target_clock.unwrap();
+        if !clock.1.is_main {
+            clock.0.translation.y = -190.0;
         }
-        // move the player to the next clock
-        transform.translation.x = clock_positions[current_clock.0 + 1].1;
-
-        // lower the clock the player was on
-        clocks.get_mut(current_clock.1 .0).unwrap().1.translation.y = -230.0;
-        // raise the clock the player is on
-        clocks
-            .get_mut(clock_positions[current_clock.0 + 1].0)
-            .unwrap()
-            .1
-            .translation
-            .y = -190.0;
-    } else if movement.0.x < 0.0 {
-        let left_clocks = clock_positions
-            .iter()
-            .filter(|&(_, x)| x < &character_position)
-            .count();
-        if left_clocks == 0 {
-            return;
-        }
-        transform.translation.x = clock_positions[current_clock.0 - 1].1;
-
-        clocks.get_mut(current_clock.1 .0).unwrap().1.translation.y = -230.0;
-        clocks
-            .get_mut(clock_positions[current_clock.0 - 1].0)
-            .unwrap()
-            .1
-            .translation
-            .y = -190.0;
     }
 }

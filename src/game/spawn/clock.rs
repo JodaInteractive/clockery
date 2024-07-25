@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.observe(spawn_clock);
+    app.observe(spawn_interact_clock);
     app.observe(spawn_main_clock);
     app.add_systems(
         FixedUpdate,
@@ -16,8 +16,27 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(AppSet::FixedUpdate)
             .run_if(in_state(Screen::Playing)),
     );
-    app.add_systems(Update, record_clock_controller.in_set(AppSet::RecordInput));
-    app.add_systems(FixedUpdate, apply_clock_control.in_set(AppSet::Update));
+    app.add_systems(
+        Update,
+        record_clock_controller
+            .in_set(AppSet::RecordInput)
+            .run_if(in_state(Screen::Playing)),
+    );
+    app.add_systems(
+        FixedUpdate,
+        apply_clock_control
+            .in_set(AppSet::Update)
+            .run_if(in_state(Screen::Playing)),
+    );
+    app.insert_resource(Positions {
+        clock_spawn: Vec2::new(-550.0, -220.0),
+        clock_1: Vec2::new(-330.0, -190.0),
+        clock_2: Vec2::new(-180.0, -220.0),
+        clock_3: Vec2::new(-30.0, -220.0),
+        clock_4: Vec2::new(120.0, -220.0),
+        clock_5: Vec2::new(270.0, -220.0),
+        oil_can: Vec2::new(490.0, -220.0),
+    });
 }
 
 #[derive(Event, Debug)]
@@ -27,13 +46,10 @@ pub struct SpawnClock;
 pub struct SpawnMainClock;
 
 #[derive(Component)]
-struct Clock;
-
-#[derive(Component)]
-struct MainClock;
-
-#[derive(Component)]
-pub struct InteractClock;
+pub struct Clock {
+    pub is_main: bool,
+    pub time_left: f32,
+}
 
 #[derive(Component)]
 enum ClockHandType {
@@ -43,66 +59,128 @@ enum ClockHandType {
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
-pub struct ClockController(pub bool);
+pub struct ClockController {
+    pub index: usize,
+    pub setting: bool,
+    pub time_setting: f32,
+    pub winding: bool,
+    pub time_winding: f32,
+    pub direction: Vec2,
+}
+
+#[derive(Resource)]
+pub struct Positions {
+    pub clock_spawn: Vec2,
+    pub clock_1: Vec2,
+    pub clock_2: Vec2,
+    pub clock_3: Vec2,
+    pub clock_4: Vec2,
+    pub clock_5: Vec2,
+    pub oil_can: Vec2,
+}
+
+#[derive(Component)]
+pub struct Interactable;
 
 fn record_clock_controller(
+    time: Res<Time>,
     input: Res<ButtonInput<KeyCode>>,
     mut controller_query: Query<&mut ClockController>,
 ) {
     for mut controller in &mut controller_query {
-        controller.0 = input.pressed(KeyCode::Space);
+        if input.pressed(KeyCode::Space) {
+            if controller.setting {
+                controller.time_setting += time.delta_seconds();
+            } else {
+                controller.setting = true;
+                controller.time_setting = 0.0;
+            }
+        } else {
+            controller.setting = false;
+            controller.time_setting = 0.0;
+        }
+
+        if input.pressed(KeyCode::KeyW) {
+            if controller.winding {
+                controller.time_winding += time.delta_seconds();
+            } else {
+                controller.winding = true;
+                controller.time_winding = 0.0;
+            }
+        } else {
+            controller.winding = false;
+            controller.time_winding = 0.0;
+        }
     }
 }
 
 fn apply_clock_control(
     time: Res<Time>,
-    mut control_query: Query<(&ClockController, &Transform), Without<InteractClock>>,
-    mut clocks: Query<(Entity, &Transform, &Children), With<InteractClock>>,
+    positions: Res<Positions>,
+    mut control_query: Query<&mut ClockController, Without<Interactable>>,
+    mut clocks: Query<(&mut Clock, &Transform, &Children), With<Interactable>>,
     mut q_child: Query<
         (&mut Transform, &ClockHandType),
-        (Without<InteractClock>, Without<ClockController>),
+        (Without<Interactable>, Without<ClockController>),
     >,
 ) {
-    // if there are no clocks, short-circuit
-    let clock_count = clocks.iter().count();
-    if clock_count == 1 {
-        return;
-    }
-
-    // get all clocks and their positions
-    let clock_positions = clocks
-        .iter()
-        .map(|(e, t, c)| (e, t.translation.x, c))
-        .collect::<Vec<(Entity, f32, &Children)>>();
-
-    // get the player's current position
+    // check for control state
     let result = control_query.get_single_mut();
     if result.is_err() {
         return;
     }
-    let (controller, transform) = result.unwrap();
-    let character_position = transform.translation.x;
+    let mut controller = result.unwrap();
+    if !controller.winding && !controller.setting {
+        return;
+    }
 
-    // get the current clock and it's position
-    let current_clock = clock_positions
-        .iter()
-        .enumerate()
-        .find(|(_, &x)| x.1 == character_position)
-        .unwrap();
+    if controller.winding {
+        controller.time_winding += time.delta_seconds();
+        controller.time_winding = controller.time_winding.min(3.0);
+    }
 
-    // tick the current clock
-    if controller.0 {
-        let (_, _, children) = current_clock.1;
-        for &child in children.iter() {
-            let child_result = q_child.get_mut(child);
+    if controller.setting {
+        controller.time_setting += time.delta_seconds();
+        controller.time_setting = controller.time_setting.min(3.0);
+    }
 
+    let position = match controller.index {
+        0 => positions.clock_spawn.x,
+        1 => positions.clock_1.x,
+        2 => positions.clock_2.x,
+        3 => positions.clock_3.x,
+        4 => positions.clock_4.x,
+        5 => positions.clock_5.x,
+        6 => positions.oil_can.x,
+        _ => panic!("Invalid index"),
+    };
+
+    // find the clock that is being controlled
+    let children = clocks.iter_mut().find(|t| t.1.translation.x == position);
+    if children.is_none() {
+        return;
+    }
+    let mut children = children.unwrap();
+
+    if controller.winding {
+        children.0.time_left += time.delta_seconds() * 1.0;
+    }
+
+    for &child in children.2.iter() {
+        let child_result = q_child.get_mut(child);
+
+        if controller.setting {
             if let Ok((mut transform, hand_type)) = child_result {
                 match hand_type {
                     ClockHandType::Hour => {
-                        transform.rotate_z(time.delta_seconds() * -0.008726646 * 5.0);
+                        transform.rotate_z(
+                            time.delta_seconds() * -0.008726646 * 100.0 * controller.time_setting,
+                        );
                     }
                     ClockHandType::Minute => {
-                        transform.rotate_z(time.delta_seconds() * -0.1047198 * 5.0);
+                        transform.rotate_z(
+                            time.delta_seconds() * -0.1047198 * 100.0 * controller.time_setting,
+                        );
                     }
                 }
             }
@@ -112,20 +190,30 @@ fn apply_clock_control(
 
 fn tick_clocks(
     time: Res<Time>,
-    q_parent: Query<(&Clock, &Children)>,
-    mut q_child: Query<(&mut Transform, &ClockHandType)>,
+    mut q_parent: Query<(&mut Clock, &Children)>,
+    mut q_child: Query<(&mut Transform, &ClockHandType), Without<Clock>>,
 ) {
-    for (_, children) in q_parent.iter() {
+    let hour_speed = time.delta_seconds() * -0.008726646 * 2.0;
+    let minute_speed = time.delta_seconds() * -0.1047198 * 2.0;
+    for (mut clock, children) in q_parent.iter_mut() {
+        if !clock.is_main {
+            clock.time_left -= time.delta_seconds();
+            if clock.time_left <= 0.0 {
+                clock.time_left = 0.0;
+                continue;
+            }
+        }
+
         for &child in children.iter() {
             let child_result = q_child.get_mut(child);
 
             if let Ok((mut transform, hand_type)) = child_result {
                 match hand_type {
                     ClockHandType::Hour => {
-                        transform.rotate_z(time.delta_seconds() * -0.008726646);
+                        transform.rotate_z(hour_speed);
                     }
                     ClockHandType::Minute => {
-                        transform.rotate_z(time.delta_seconds() * -0.1047198);
+                        transform.rotate_z(minute_speed);
                     }
                 }
             }
@@ -134,23 +222,24 @@ fn tick_clocks(
 }
 
 fn score_clocks(
-    main_clock: Query<(&MainClock, &Children)>,
-    clocks: Query<(&Clock, &Children), Without<MainClock>>,
+    clocks: Query<(&Clock, &Children)>,
     clock_children: Query<(&Transform, &ClockHandType)>,
 ) {
-    let (_, main_hands) = main_clock.single();
-    let main_rotations = get_clock_rotations(main_hands, &clock_children);
+    let main = clocks.iter().find(|(clock, _)| clock.is_main).unwrap();
+    let main_rotations = get_clock_rotations(main.1, &clock_children);
 
-    for (_, children) in clocks.iter() {
+    for (clock, children) in clocks.iter() {
+        if clock.is_main {
+            continue;
+        }
+
         let clock_rotation = get_clock_rotations(children, &clock_children);
 
         let hour_diff = main_rotations.hour.angle_between(clock_rotation.hour);
         let minute_diff = main_rotations.minute.angle_between(clock_rotation.minute);
 
-        // println!("Clock diff: {:#?} {:#?}", hour_diff, minute_diff);
-
         if hour_diff < 0.1 && minute_diff < 0.1 {
-            // println!("Score!");
+            // println!("Score! {} {}", hour_diff, minute_diff);
         }
     }
 }
@@ -197,15 +286,16 @@ fn spawn_main_clock(
                     ..Default::default()
                 },
                 sprite: Sprite {
-                    anchor: Anchor::Custom(Vec2::new(-0.01, 0.0)),
                     custom_size: Some(Vec2::new(512.0, 512.0)),
                     ..default()
                 },
                 ..default()
             },
+            Clock {
+                is_main: true,
+                time_left: 0.0,
+            },
             StateScoped(Screen::Playing),
-            Clock,
-            MainClock,
         ))
         .with_children(|parent| {
             parent.spawn((
@@ -213,12 +303,10 @@ fn spawn_main_clock(
                     texture: image_handles[&ImageKey::ClockHour].clone_weak(),
                     transform: Transform {
                         translation: Vec3::new(0.0, 0.0, 1.0),
-                        rotation: Quat::from_rotation_z(3.8),
                         ..default()
                     },
                     sprite: Sprite {
-                        anchor: Anchor::Custom(Vec2::new(0.125, 0.125)),
-                        custom_size: Some(Vec2::new(160.0, 160.0)),
+                        custom_size: Some(Vec2::new(360.0, 360.0)),
                         ..default()
                     },
                     ..default()
@@ -231,12 +319,10 @@ fn spawn_main_clock(
                     texture: image_handles[&ImageKey::ClockMinute].clone_weak(),
                     transform: Transform {
                         translation: Vec3::new(0.0, 0.0, 2.0),
-                        rotation: Quat::from_rotation_z(3.8),
                         ..default()
                     },
                     sprite: Sprite {
-                        anchor: Anchor::Custom(Vec2::new(0.1875, 0.227)),
-                        custom_size: Some(Vec2::new(220.0, 220.0)),
+                        custom_size: Some(Vec2::new(360.0, 360.0)),
                         ..default()
                     },
                     ..default()
@@ -246,24 +332,30 @@ fn spawn_main_clock(
         });
 }
 
-fn spawn_clock(
+fn spawn_interact_clock(
     _trigger: Trigger<SpawnClock>,
+    positions: Res<Positions>,
     mut commands: Commands,
     image_handles: Res<HandleMap<ImageKey>>,
-    clocks: Query<(&InteractClock, &Transform)>,
+    clocks: Query<(&Clock, &Transform)>,
 ) {
     let clock_count = clocks.iter().count();
-    let x = -330.0 + (clock_count as f32 * 150.0);
-    let first_clock = clock_count == 0;
+    let translation = match clock_count {
+        1 => positions.clock_1,
+        2 => positions.clock_2,
+        3 => positions.clock_3,
+        4 => positions.clock_4,
+        5 => positions.clock_5,
+        _ => positions.clock_spawn,
+    };
 
-    let y = if first_clock { -190.0 } else { -230.0 };
     commands
         .spawn((
             Name::new("Clock"),
             SpriteBundle {
                 texture: image_handles[&ImageKey::Clock].clone_weak(),
                 transform: Transform {
-                    translation: Vec3::new(x, y, 20.0),
+                    translation: Vec3::new(translation.x, translation.y, 20.0),
                     ..Default::default()
                 },
                 sprite: Sprite {
@@ -274,8 +366,11 @@ fn spawn_clock(
                 ..default()
             },
             StateScoped(Screen::Playing),
-            Clock,
-            InteractClock,
+            Clock {
+                is_main: false,
+                time_left: 60.0,
+            },
+            Interactable,
         ))
         .with_children(|parent| {
             parent.spawn((
@@ -283,12 +378,10 @@ fn spawn_clock(
                     texture: image_handles[&ImageKey::ClockHour].clone_weak(),
                     transform: Transform {
                         translation: Vec3::new(0.0, 0.0, 30.0),
-                        rotation: Quat::from_rotation_z(3.8),
                         ..Default::default()
                     },
                     sprite: Sprite {
-                        anchor: Anchor::Custom(Vec2::new(0.125, 0.125)),
-                        custom_size: Some(Vec2::new(40.0, 40.0)),
+                        custom_size: Some(Vec2::new(90.0, 90.0)),
                         ..default()
                     },
                     ..default()
@@ -301,12 +394,10 @@ fn spawn_clock(
                     texture: image_handles[&ImageKey::ClockMinute].clone_weak(),
                     transform: Transform {
                         translation: Vec3::new(0.0, 0.0, 40.0),
-                        rotation: Quat::from_rotation_z(3.8),
                         ..Default::default()
                     },
                     sprite: Sprite {
-                        anchor: Anchor::Custom(Vec2::new(0.1875, 0.227)),
-                        custom_size: Some(Vec2::new(55.0, 55.0)),
+                        custom_size: Some(Vec2::new(90.0, 90.0)),
                         ..default()
                     },
                     ..default()

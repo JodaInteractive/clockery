@@ -27,6 +27,9 @@ fn spawn_level(_trigger: Trigger<SpawnLevel>, mut commands: Commands) {
     commands.trigger(SpawnMainClock);
     commands.trigger(SpawnClock);
     commands.trigger(SpawnClock);
+    commands.trigger(SpawnClock);
+    commands.trigger(SpawnClock);
+    commands.trigger(SpawnClock);
 }
 
 fn spawn_table(

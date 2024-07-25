@@ -44,7 +44,10 @@ fn spawn_player(
             ..default()
         },
         MovementController::default(),
-        ClockController::default(),
+        ClockController {
+            index: 1,
+            ..default()
+        },
         StateScoped(Screen::Playing),
     ));
 }
