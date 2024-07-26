@@ -3,7 +3,7 @@ use bevy::{prelude::*, sprite::Anchor};
 use crate::{
     game::{
         assets::{HandleMap, ImageKey, SfxKey},
-        audio::sfx::{PlayLoopingSfx, StopLoopingSfx},
+        audio::sfx::{PlayLoopingSfx, PlaySfx, StopLoopingSfx},
     },
     screen::Screen,
     AppSet,
@@ -464,6 +464,16 @@ fn spawn_interact_clock(
     image_handles: Res<HandleMap<ImageKey>>,
     clocks: Query<(&Clock, &Transform), With<Interactable>>,
 ) {
+    let r = rand::random::<f32>();
+    if r < 0.25 {
+        commands.trigger(PlaySfx::Key(SfxKey::ClockSpawn1));
+    } else if r < 0.5 {
+        commands.trigger(PlaySfx::Key(SfxKey::ClockSpawn2));
+    } else if r < 0.75 {
+        commands.trigger(PlaySfx::Key(SfxKey::ClockSpawn3));
+    } else {
+        commands.trigger(PlaySfx::Key(SfxKey::ClockSpawn4));
+    }
     let clock_count = clocks.iter().count();
     let translation = positions.clock_spawn;
     let clock_data = &clock_data.clocks[clock_count];
