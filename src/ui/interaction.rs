@@ -36,11 +36,12 @@ fn trigger_interaction_sfx(
     mut interactions: Query<&Interaction, Changed<Interaction>>,
     mut commands: Commands,
 ) {
-    for interaction in &mut interactions {
-        match interaction {
-            Interaction::Hovered => commands.trigger(PlaySfx::Key(SfxKey::ButtonHover)),
-            Interaction::Pressed => commands.trigger(PlaySfx::Key(SfxKey::ButtonPress)),
-            _ => (),
-        }
+    for _ in &mut interactions {
+        let r = if rand::random::<f32>() > 0.5 {
+            SfxKey::MenuTick
+        } else {
+            SfxKey::MenuTock
+        };
+        commands.trigger(PlaySfx::Key(r));
     }
 }
