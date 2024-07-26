@@ -31,13 +31,13 @@ pub(super) fn plugin(app: &mut App) {
             .run_if(in_state(Screen::Playing)),
     );
     app.insert_resource(Positions {
-        clock_spawn: Vec2::new(-550.0, -220.0),
+        clock_spawn: Vec2::new(-550.0, -180.0),
         clock_1: Vec2::new(-330.0, -190.0),
         clock_2: Vec2::new(-180.0, -220.0),
         clock_3: Vec2::new(-30.0, -220.0),
         clock_4: Vec2::new(120.0, -220.0),
         clock_5: Vec2::new(270.0, -220.0),
-        oil_can: Vec2::new(490.0, -220.0),
+        oil_can: Vec2::new(550.0, -200.0),
     });
 }
 
