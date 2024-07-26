@@ -274,6 +274,12 @@ pub enum SfxKey {
     OilDrink,
     MenuTick,
     MenuTock,
+    Ticking1,
+    Ticking2,
+    Ticking3,
+    Ticking4,
+    Ticking5,
+    Ticking6,
 }
 
 impl AssetKey for SfxKey {
@@ -304,6 +310,30 @@ impl FromWorld for HandleMap<SfxKey> {
             (
                 SfxKey::MenuTock,
                 asset_server.load("audio/sfx/menu-tock.wav"),
+            ),
+            (
+                SfxKey::Ticking1,
+                asset_server.load("audio/sfx/ticking-1.wav"),
+            ),
+            (
+                SfxKey::Ticking2,
+                asset_server.load("audio/sfx/ticking-2.wav"),
+            ),
+            (
+                SfxKey::Ticking3,
+                asset_server.load("audio/sfx/ticking-3.wav"),
+            ),
+            (
+                SfxKey::Ticking4,
+                asset_server.load("audio/sfx/ticking-4.wav"),
+            ),
+            (
+                SfxKey::Ticking5,
+                asset_server.load("audio/sfx/ticking-5.wav"),
+            ),
+            (
+                SfxKey::Ticking6,
+                asset_server.load("audio/sfx/ticking-6.wav"),
             ),
         ]
         .into()

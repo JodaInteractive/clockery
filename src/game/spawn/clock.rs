@@ -1,7 +1,10 @@
 use bevy::{prelude::*, sprite::Anchor};
 
 use crate::{
-    game::assets::{HandleMap, ImageKey},
+    game::{
+        assets::{HandleMap, ImageKey, SfxKey},
+        audio::sfx::{PlayLoopingSfx, StopLoopingSfx},
+    },
     screen::Screen,
     AppSet,
 };
@@ -46,26 +49,31 @@ pub(super) fn plugin(app: &mut App) {
                 time_left: 0.0,
                 hour_start_rotation: 0.0,
                 minute_start_rotation: 1.0,
+                audio: SfxKey::Ticking2,
             },
             ClockData {
                 time_left: 0.0,
                 hour_start_rotation: 2.0,
                 minute_start_rotation: 3.0,
+                audio: SfxKey::Ticking3,
             },
             ClockData {
                 time_left: 0.0,
                 hour_start_rotation: 4.0,
                 minute_start_rotation: 5.0,
+                audio: SfxKey::Ticking4,
             },
             ClockData {
                 time_left: 0.0,
                 hour_start_rotation: 6.0,
                 minute_start_rotation: 7.0,
+                audio: SfxKey::Ticking5,
             },
             ClockData {
                 time_left: 0.0,
                 hour_start_rotation: 8.0,
                 minute_start_rotation: 9.0,
+                audio: SfxKey::Ticking6,
             },
         ],
     });
@@ -81,6 +89,7 @@ pub struct SpawnMainClock;
 pub struct Clock {
     pub is_main: bool,
     pub time_left: f32,
+    pub audio: SfxKey,
 }
 
 #[derive(Component)]
@@ -126,6 +135,7 @@ pub struct ClockData {
     pub time_left: f32,
     pub hour_start_rotation: f32,
     pub minute_start_rotation: f32,
+    pub audio: SfxKey,
 }
 
 fn record_clock_controller(
@@ -162,7 +172,7 @@ fn record_clock_controller(
 
 fn apply_clock_control(
     time: Res<Time>,
-    positions: Res<Positions>,
+    mut commands: Commands,
     mut control_query: Query<&mut ClockController, Without<Interactable>>,
     mut clocks: Query<(Entity, &mut Clock, &Transform, &Children), With<Interactable>>,
     mut q_child: Query<
@@ -198,6 +208,10 @@ fn apply_clock_control(
     let mut children = children.unwrap();
 
     if controller.winding {
+        let zero = children.1.time_left == 0.0;
+        if zero {
+            commands.trigger(PlayLoopingSfx::Key(children.1.audio));
+        }
         children.1.time_left += time.delta_seconds() * 6.0;
     }
 
@@ -224,6 +238,7 @@ fn apply_clock_control(
 }
 
 fn tick_clocks(
+    mut commands: Commands,
     time: Res<Time>,
     mut q_parent: Query<(&mut Clock, &Children)>,
     mut q_child: Query<(&mut Transform, &ClockHandType), Without<Clock>>,
@@ -232,9 +247,16 @@ fn tick_clocks(
     let minute_speed = time.delta_seconds() * -0.1047198 * 2.0;
     for (mut clock, children) in q_parent.iter_mut() {
         if !clock.is_main {
+            let above = clock.time_left > 0.0;
+
             clock.time_left -= time.delta_seconds();
-            if clock.time_left <= 0.0 {
-                clock.time_left = 0.0;
+            clock.time_left = clock.time_left.max(0.0);
+
+            if above && clock.time_left == 0.0 {
+                commands.trigger(StopLoopingSfx::Key(clock.audio));
+            }
+
+            if clock.time_left == 0.0 {
                 continue;
             }
         }
@@ -349,6 +371,7 @@ fn spawn_main_clock(
     mut commands: Commands,
     image_handles: Res<HandleMap<ImageKey>>,
 ) {
+    commands.trigger(PlayLoopingSfx::Key(SfxKey::Ticking1));
     commands
         .spawn((
             Name::new("MainClock"),
@@ -367,6 +390,7 @@ fn spawn_main_clock(
             Clock {
                 is_main: true,
                 time_left: 0.0,
+                audio: SfxKey::Ticking1,
             },
             StateScoped(Screen::Playing),
         ))
@@ -448,6 +472,7 @@ fn spawn_interact_clock(
             Clock {
                 is_main: false,
                 time_left: clock_data.time_left,
+                audio: clock_data.audio,
             },
             Interactable,
         ))
