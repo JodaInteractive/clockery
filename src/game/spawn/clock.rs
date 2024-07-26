@@ -233,7 +233,7 @@ fn score_clocks(
     let (mut score, mut text) = score.single_mut();
 
     for (clock, children) in clocks.iter() {
-        if clock.is_main || clock.time_left < 0.0 {
+        if clock.is_main || clock.time_left <= 0.0 {
             continue;
         }
         score.0 += 1.0 * time.delta_seconds();
