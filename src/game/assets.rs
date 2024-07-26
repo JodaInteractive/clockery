@@ -280,6 +280,12 @@ pub enum SfxKey {
     Ticking4,
     Ticking5,
     Ticking6,
+    Setting1,
+    Setting2,
+    Setting3,
+    Setting4,
+    Setting5,
+    Setting6,
 }
 
 impl AssetKey for SfxKey {
@@ -335,6 +341,12 @@ impl FromWorld for HandleMap<SfxKey> {
                 SfxKey::Ticking6,
                 asset_server.load("audio/sfx/ticking-6.wav"),
             ),
+            (SfxKey::Setting1, asset_server.load("audio/sfx/set-1.wav")),
+            (SfxKey::Setting2, asset_server.load("audio/sfx/set-2.wav")),
+            (SfxKey::Setting3, asset_server.load("audio/sfx/set-3.wav")),
+            (SfxKey::Setting4, asset_server.load("audio/sfx/set-4.wav")),
+            (SfxKey::Setting5, asset_server.load("audio/sfx/set-5.wav")),
+            (SfxKey::Setting6, asset_server.load("audio/sfx/set-6.wav")),
         ]
         .into()
     }

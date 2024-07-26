@@ -213,11 +213,31 @@ fn apply_clock_control(
             commands.trigger(PlayLoopingSfx::Key(children.1.audio));
         }
         children.1.time_left += time.delta_seconds() * 6.0;
+        commands.trigger(PlayLoopingSfx::Key(SfxKey::Setting1));
+    } else {
+        commands.trigger(StopLoopingSfx::Key(SfxKey::Setting1));
     }
 
     if controller.setting {
         for &child in children.3.iter() {
             let child_result = q_child.get_mut(child);
+
+            match controller.time_setting {
+                0.0..=0.7 => commands.trigger(PlayLoopingSfx::Key(SfxKey::Setting1)),
+                0.7..=1.4 => {
+                    commands.trigger(StopLoopingSfx::Key(SfxKey::Setting1));
+                    commands.trigger(PlayLoopingSfx::Key(SfxKey::Setting2))
+                }
+                1.4..=2.1 => {
+                    commands.trigger(StopLoopingSfx::Key(SfxKey::Setting2));
+                    commands.trigger(PlayLoopingSfx::Key(SfxKey::Setting3))
+                }
+                2.1..=3.0 => {
+                    commands.trigger(StopLoopingSfx::Key(SfxKey::Setting3));
+                    commands.trigger(PlayLoopingSfx::Key(SfxKey::Setting4))
+                }
+                _ => {}
+            }
 
             if let Ok((mut transform, hand_type)) = child_result {
                 match hand_type {
@@ -234,6 +254,13 @@ fn apply_clock_control(
                 }
             }
         }
+    } else {
+        // commands.trigger(StopLoopingSfx::Key(SfxKey::Setting1));
+        commands.trigger(StopLoopingSfx::Key(SfxKey::Setting2));
+        commands.trigger(StopLoopingSfx::Key(SfxKey::Setting3));
+        commands.trigger(StopLoopingSfx::Key(SfxKey::Setting4));
+        commands.trigger(StopLoopingSfx::Key(SfxKey::Setting5));
+        commands.trigger(StopLoopingSfx::Key(SfxKey::Setting6));
     }
 }
 
