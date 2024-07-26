@@ -1,4 +1,7 @@
-use bevy::{audio::PlaybackMode, prelude::*};
+use bevy::{
+    audio::{PlaybackMode, Volume},
+    prelude::*,
+};
 use rand::seq::SliceRandom;
 
 use crate::{
@@ -31,6 +34,16 @@ fn play_looping_sfx(
         PlayLoopingSfx::Key(key) => *key,
     };
 
+    let is_tick = matches!(
+        sfx_key,
+        SfxKey::Ticking1
+            | SfxKey::Ticking2
+            | SfxKey::Ticking3
+            | SfxKey::Ticking4
+            | SfxKey::Ticking5
+            | SfxKey::Ticking6
+    );
+
     let handle = sfx_handles[&sfx_key].clone_weak();
     let state = sfx_playing
         .states
@@ -55,6 +68,11 @@ fn play_looping_sfx(
                 source: handle,
                 settings: PlaybackSettings {
                     mode: PlaybackMode::Loop,
+                    volume: if is_tick {
+                        Volume::new(2.0)
+                    } else {
+                        Volume::new(1.0)
+                    },
                     ..default()
                 },
             },
