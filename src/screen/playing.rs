@@ -9,7 +9,6 @@ use crate::game::{
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Playing), enter_playing);
-    app.add_systems(OnExit(Screen::Playing), exit_playing);
 
     app.add_systems(
         Update,
@@ -21,11 +20,6 @@ pub(super) fn plugin(app: &mut App) {
 fn enter_playing(mut commands: Commands) {
     commands.trigger(SpawnLevel);
     commands.trigger(PlaySoundtrack::Key(SoundtrackKey::Gameplay));
-}
-
-fn exit_playing(mut commands: Commands) {
-    // We could use [`StateScoped`] on the sound playing entites instead.
-    // commands.trigger(PlaySoundtrack::Disable);
 }
 
 fn return_to_title_screen(mut next_screen: ResMut<NextState<Screen>>, mut commands: Commands) {

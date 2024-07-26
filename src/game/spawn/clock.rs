@@ -47,32 +47,22 @@ pub(super) fn plugin(app: &mut App) {
         clocks: vec![
             ClockData {
                 time_left: 0.0,
-                hour_start_rotation: 0.0,
-                minute_start_rotation: 1.0,
                 audio: SfxKey::Ticking2,
             },
             ClockData {
                 time_left: 0.0,
-                hour_start_rotation: 2.0,
-                minute_start_rotation: 3.0,
                 audio: SfxKey::Ticking3,
             },
             ClockData {
                 time_left: 0.0,
-                hour_start_rotation: 4.0,
-                minute_start_rotation: 5.0,
                 audio: SfxKey::Ticking4,
             },
             ClockData {
                 time_left: 0.0,
-                hour_start_rotation: 6.0,
-                minute_start_rotation: 7.0,
                 audio: SfxKey::Ticking5,
             },
             ClockData {
                 time_left: 0.0,
-                hour_start_rotation: 8.0,
-                minute_start_rotation: 9.0,
                 audio: SfxKey::Ticking6,
             },
         ],
@@ -133,8 +123,6 @@ pub struct Clocks {
 
 pub struct ClockData {
     pub time_left: f32,
-    pub hour_start_rotation: f32,
-    pub minute_start_rotation: f32,
     pub audio: SfxKey,
 }
 
@@ -478,17 +466,6 @@ fn spawn_interact_clock(
     let translation = positions.clock_spawn;
     let clock_data = &clock_data.clocks[clock_count];
 
-    let mut hour_transform = Transform {
-        translation: Vec3::new(0.0, 0.0, 300.0),
-        ..default()
-    };
-    // hour_transform.rotate_z(clock_data.hour_start_rotation);
-
-    let mut minute_transform = Transform {
-        translation: Vec3::new(0.0, 0.0, 400.0),
-        ..default()
-    };
-    // minute_transform.rotate_z(clock_data.minute_start_rotation);
     commands
         .spawn((
             Name::new("Clock"),
@@ -517,7 +494,10 @@ fn spawn_interact_clock(
             parent.spawn((
                 SpriteBundle {
                     texture: image_handles[&ImageKey::ClockHour].clone_weak(),
-                    transform: hour_transform,
+                    transform: Transform {
+                        translation: Vec3::new(0.0, 0.0, 300.0),
+                        ..default()
+                    },
                     sprite: Sprite {
                         custom_size: Some(Vec2::new(90.0, 90.0)),
                         ..default()
@@ -530,7 +510,10 @@ fn spawn_interact_clock(
             parent.spawn((
                 SpriteBundle {
                     texture: image_handles[&ImageKey::ClockMinute].clone_weak(),
-                    transform: minute_transform,
+                    transform: Transform {
+                        translation: Vec3::new(0.0, 0.0, 400.0),
+                        ..default()
+                    },
                     sprite: Sprite {
                         custom_size: Some(Vec2::new(90.0, 90.0)),
                         ..default()

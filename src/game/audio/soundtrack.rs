@@ -22,7 +22,6 @@ fn play_soundtrack(
 
     let soundtrack_key = match trigger.event() {
         PlaySoundtrack::Key(key) => *key,
-        PlaySoundtrack::Disable => return,
     };
     commands.spawn((
         AudioSourceBundle {
@@ -43,7 +42,6 @@ fn play_soundtrack(
 #[derive(Event)]
 pub enum PlaySoundtrack {
     Key(SoundtrackKey),
-    Disable,
 }
 
 /// Marker component for the soundtrack entity so we can find it later.

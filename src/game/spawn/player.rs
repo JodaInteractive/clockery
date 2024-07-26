@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     game::{
         assets::{HandleMap, ImageKey, SfxKey},
-        audio::sfx::{PlayLoopingSfx, PlaySfx, StopLoopingSfx},
+        audio::sfx::{PlayLoopingSfx, StopLoopingSfx},
         movement::MovementController,
     },
     screen::Screen,

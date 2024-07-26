@@ -10,7 +10,6 @@ use crate::{
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Credits), enter_credits);
-    app.add_systems(OnExit(Screen::Credits), exit_credits);
 
     app.add_systems(
         Update,
@@ -42,10 +41,6 @@ fn enter_credits(mut commands: Commands) {
         });
 
     commands.trigger(PlaySoundtrack::Key(SoundtrackKey::Credits));
-}
-
-fn exit_credits(mut commands: Commands) {
-    // commands.trigger(PlaySoundtrack::Disable);
 }
 
 fn handle_credits_action(
