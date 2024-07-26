@@ -6,6 +6,8 @@ use crate::{
     AppSet,
 };
 
+use super::level::Score;
+
 pub(super) fn plugin(app: &mut App) {
     app.observe(spawn_interact_clock);
     app.observe(spawn_main_clock);
@@ -221,16 +223,20 @@ fn tick_clocks(
 }
 
 fn score_clocks(
+    time: Res<Time>,
+    mut score: Query<(&mut Score, &mut Text)>,
     clocks: Query<(&Clock, &Children)>,
     clock_children: Query<(&Transform, &ClockHandType)>,
 ) {
     let main = clocks.iter().find(|(clock, _)| clock.is_main).unwrap();
     let main_rotations = get_clock_rotations(main.1, &clock_children);
+    let (mut score, mut text) = score.single_mut();
 
     for (clock, children) in clocks.iter() {
-        if clock.is_main {
+        if clock.is_main || clock.time_left < 0.0 {
             continue;
         }
+        score.0 += 1.0 * time.delta_seconds();
 
         let clock_rotation = get_clock_rotations(children, &clock_children);
 
@@ -238,9 +244,12 @@ fn score_clocks(
         let minute_diff = main_rotations.minute.angle_between(clock_rotation.minute);
 
         if hour_diff < 0.1 && minute_diff < 0.1 {
-            // println!("Score! {} {}", hour_diff, minute_diff);
+            score.0 += 1.0 * time.delta_seconds();
+            println!("Score! {} {}", hour_diff, minute_diff);
         }
     }
+
+    text.sections[0].value = format!("{:.0}", score.0);
 }
 
 struct ClockRotations {

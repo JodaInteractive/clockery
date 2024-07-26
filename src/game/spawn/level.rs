@@ -14,6 +14,7 @@ pub(super) fn plugin(app: &mut App) {
     app.observe(spawn_level);
     app.observe(spawn_table);
     app.observe(spawn_oil);
+    app.observe(spawn_score);
 }
 
 #[derive(Event, Debug)]
@@ -25,6 +26,12 @@ pub struct SpawnTable;
 #[derive(Event, Debug)]
 pub struct SpawnOil;
 
+#[derive(Event, Debug)]
+pub struct SpawnScore;
+
+#[derive(Component)]
+pub struct Score(pub f32);
+
 fn spawn_level(_trigger: Trigger<SpawnLevel>, mut commands: Commands) {
     commands.trigger(SpawnPlayer);
     commands.trigger(SpawnTable);
@@ -35,6 +42,7 @@ fn spawn_level(_trigger: Trigger<SpawnLevel>, mut commands: Commands) {
     commands.trigger(SpawnClock);
     commands.trigger(SpawnClock);
     commands.trigger(SpawnOil);
+    commands.trigger(SpawnScore);
 }
 
 fn spawn_table(
@@ -80,6 +88,32 @@ fn spawn_oil(
             },
             ..default()
         },
+        StateScoped(Screen::Playing),
+    ));
+}
+
+fn spawn_score(_trigger: Trigger<SpawnScore>, mut commands: Commands) {
+    commands.spawn((
+        Name::new("Score"),
+        TextBundle {
+            text: Text {
+                sections: vec![TextSection {
+                    value: "0".to_string(),
+                    style: TextStyle {
+                        font_size: 50.0,
+                        color: Color::WHITE,
+                        ..default()
+                    },
+                }],
+                ..default()
+            },
+            transform: Transform {
+                translation: Vec3::new(-500.0, -300.0, 10.0),
+                ..default()
+            },
+            ..default()
+        },
+        Score(0.0),
         StateScoped(Screen::Playing),
     ));
 }
