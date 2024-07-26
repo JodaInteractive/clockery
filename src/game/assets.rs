@@ -286,6 +286,10 @@ pub enum SfxKey {
     Setting4,
     Setting5,
     Setting6,
+    ClockDown1,
+    ClockDown2,
+    ClockDown3,
+    ClockDown4,
 }
 
 impl AssetKey for SfxKey {
@@ -347,6 +351,22 @@ impl FromWorld for HandleMap<SfxKey> {
             (SfxKey::Setting4, asset_server.load("audio/sfx/set-4.wav")),
             (SfxKey::Setting5, asset_server.load("audio/sfx/set-5.wav")),
             (SfxKey::Setting6, asset_server.load("audio/sfx/set-6.wav")),
+            (
+                SfxKey::ClockDown1,
+                asset_server.load("audio/sfx/clock-down-1.wav"),
+            ),
+            (
+                SfxKey::ClockDown2,
+                asset_server.load("audio/sfx/clock-down-2.wav"),
+            ),
+            (
+                SfxKey::ClockDown3,
+                asset_server.load("audio/sfx/clock-down-3.wav"),
+            ),
+            (
+                SfxKey::ClockDown4,
+                asset_server.load("audio/sfx/clock-down-4.wav"),
+            ),
         ]
         .into()
     }

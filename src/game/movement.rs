@@ -5,7 +5,11 @@
 
 use bevy::prelude::*;
 
-use super::spawn::clock::{Clock, ClockController, Interactable, Positions};
+use super::{
+    assets::SfxKey,
+    audio::sfx::PlaySfx,
+    spawn::clock::{Clock, ClockController, Interactable, Positions},
+};
 use crate::{screen::Screen, AppSet};
 
 pub(super) fn plugin(app: &mut App) {
@@ -24,6 +28,7 @@ pub(super) fn plugin(app: &mut App) {
 pub struct MovementController(pub Vec2);
 
 fn movement(
+    mut commands: Commands,
     input: Res<ButtonInput<KeyCode>>,
     mut controller_query: Query<(&mut ClockController, &mut Transform), Without<Clock>>,
     mut clocks: Query<(Entity, &mut Transform, &mut Clock), With<Interactable>>,
@@ -74,6 +79,16 @@ fn movement(
                     clock.1.translation.y = position.y;
                     controller.held_clock = None;
                 }
+            }
+            let r = rand::random::<f32>();
+            if r < 0.25 {
+                commands.trigger(PlaySfx::Key(SfxKey::ClockDown1));
+            } else if r < 0.5 {
+                commands.trigger(PlaySfx::Key(SfxKey::ClockDown2));
+            } else if r < 0.75 {
+                commands.trigger(PlaySfx::Key(SfxKey::ClockDown3));
+            } else {
+                commands.trigger(PlaySfx::Key(SfxKey::ClockDown4));
             }
         } else {
             let target_clock = clocks
