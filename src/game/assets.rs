@@ -40,6 +40,7 @@ pub enum ImageKey {
     OilCan,
     ClockTable,
     OilTable,
+    Background,
 }
 
 impl AssetKey for ImageKey {
@@ -243,6 +244,15 @@ impl FromWorld for HandleMap<ImageKey> {
                 ImageKey::OilTable,
                 asset_server.load_with_settings(
                     "images/oil-table.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::Background,
+                asset_server.load_with_settings(
+                    "images/background.png",
                     |settings: &mut ImageLoaderSettings| {
                         settings.sampler = ImageSampler::nearest();
                     },

@@ -17,6 +17,7 @@ pub(super) fn plugin(app: &mut App) {
     app.observe(spawn_score);
     app.observe(spawn_clock_table);
     app.observe(spawn_oil_table);
+    app.observe(spawn_background);
 }
 
 #[derive(Event, Debug)]
@@ -40,7 +41,30 @@ pub struct SpawnOilTable;
 #[derive(Component)]
 pub struct Score(pub f32);
 
+#[derive(Event, Debug)]
+pub struct SpawnBackground;
+
+fn spawn_background(
+    _trigger: Trigger<SpawnBackground>,
+    mut commands: Commands,
+    image_handles: Res<HandleMap<ImageKey>>,
+) {
+    commands.spawn(SpriteBundle {
+        texture: image_handles[&ImageKey::Background].clone_weak(),
+        transform: Transform {
+            translation: Vec3::new(0.0, -110.0, -100.0),
+            ..default()
+        },
+        sprite: Sprite {
+            custom_size: Some(Vec2::new(1280.0, 1280.0)),
+            ..default()
+        },
+        ..default()
+    });
+}
+
 fn spawn_level(_trigger: Trigger<SpawnLevel>, mut commands: Commands) {
+    commands.trigger(SpawnBackground);
     commands.trigger(SpawnPlayer);
     commands.trigger(SpawnTable);
     commands.trigger(SpawnMainClock);
