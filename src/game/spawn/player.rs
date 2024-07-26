@@ -8,7 +8,7 @@ use crate::{
     screen::Screen,
 };
 
-use super::clock::{ClockController, Positions};
+use super::clock::ClockController;
 
 pub(super) fn plugin(app: &mut App) {
     app.observe(spawn_player);
@@ -53,12 +53,12 @@ fn oil_leak(
     images: Res<HandleMap<ImageKey>>,
 ) {
     let mut controller = controller.single_mut();
+    controller.oil_level -= time.delta_seconds() * controller.oil_leak;
     if controller.oil_level <= 0.0 {
         println!("Game over!");
         return;
     }
-
-    controller.oil_level -= time.delta_seconds() * 1.6;
+    controller.oil_leak += time.delta_seconds() * 0.01;
 
     let (mut image, mut sprite) = query.single_mut();
     match controller.oil_level {
@@ -125,6 +125,7 @@ fn spawn_player(
             ClockController {
                 index: 1,
                 oil_level: 100.0,
+                oil_leak: 1.4,
                 direction: Vec2::new(0.0, 0.0),
                 held_clock: None,
                 setting: false,

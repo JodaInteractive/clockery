@@ -100,6 +100,7 @@ pub struct ClockController {
     pub time_winding: f32,
     pub direction: Vec2,
     pub oil_level: f32,
+    pub oil_leak: f32,
 }
 
 #[derive(Resource)]
@@ -414,7 +415,7 @@ fn spawn_interact_clock(
 ) {
     let clock_count = clocks.iter().count();
     let translation = positions.clock_spawn;
-    let clock_data = &clock_data.clocks[clock_count + 1];
+    let clock_data = &clock_data.clocks[clock_count];
 
     let mut hour_transform = Transform {
         translation: Vec3::new(0.0, 0.0, 30.0),
