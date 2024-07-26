@@ -125,7 +125,12 @@ fn spawn_player(
             ClockController {
                 index: 1,
                 oil_level: 100.0,
-                ..default()
+                direction: Vec2::new(0.0, 0.0),
+                held_clock: None,
+                setting: false,
+                winding: false,
+                time_setting: 0.0,
+                time_winding: 0.0,
             },
             StateScoped(Screen::Playing),
         ))

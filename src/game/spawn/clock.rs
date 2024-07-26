@@ -31,13 +31,43 @@ pub(super) fn plugin(app: &mut App) {
             .run_if(in_state(Screen::Playing)),
     );
     app.insert_resource(Positions {
-        clock_spawn: Vec2::new(-550.0, -180.0),
-        clock_1: Vec2::new(-330.0, -190.0),
+        clock_spawn: Vec2::new(-550.0, -185.0),
+        clock_1: Vec2::new(-330.0, -220.0),
         clock_2: Vec2::new(-180.0, -220.0),
         clock_3: Vec2::new(-30.0, -220.0),
         clock_4: Vec2::new(120.0, -220.0),
         clock_5: Vec2::new(270.0, -220.0),
         oil_can: Vec2::new(550.0, -200.0),
+    });
+
+    app.insert_resource(Clocks {
+        clocks: vec![
+            ClockData {
+                time_left: 0.0,
+                hour_start_rotation: 0.0,
+                minute_start_rotation: 1.0,
+            },
+            ClockData {
+                time_left: 0.0,
+                hour_start_rotation: 2.0,
+                minute_start_rotation: 3.0,
+            },
+            ClockData {
+                time_left: 0.0,
+                hour_start_rotation: 4.0,
+                minute_start_rotation: 5.0,
+            },
+            ClockData {
+                time_left: 0.0,
+                hour_start_rotation: 6.0,
+                minute_start_rotation: 7.0,
+            },
+            ClockData {
+                time_left: 0.0,
+                hour_start_rotation: 8.0,
+                minute_start_rotation: 9.0,
+            },
+        ],
     });
 }
 
@@ -59,9 +89,10 @@ enum ClockHandType {
     Minute,
 }
 
-#[derive(Component, Reflect, Default)]
+#[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct ClockController {
+    pub held_clock: Option<Entity>,
     pub index: usize,
     pub setting: bool,
     pub time_setting: f32,
@@ -85,13 +116,24 @@ pub struct Positions {
 #[derive(Component)]
 pub struct Interactable;
 
+#[derive(Resource)]
+pub struct Clocks {
+    clocks: Vec<ClockData>,
+}
+
+pub struct ClockData {
+    pub time_left: f32,
+    pub hour_start_rotation: f32,
+    pub minute_start_rotation: f32,
+}
+
 fn record_clock_controller(
     time: Res<Time>,
     input: Res<ButtonInput<KeyCode>>,
     mut controller_query: Query<&mut ClockController>,
 ) {
     for mut controller in &mut controller_query {
-        if input.pressed(KeyCode::Space) {
+        if input.pressed(KeyCode::KeyS) {
             if controller.setting {
                 controller.time_setting += time.delta_seconds();
             } else {
@@ -121,7 +163,7 @@ fn apply_clock_control(
     time: Res<Time>,
     positions: Res<Positions>,
     mut control_query: Query<&mut ClockController, Without<Interactable>>,
-    mut clocks: Query<(&mut Clock, &Transform, &Children), With<Interactable>>,
+    mut clocks: Query<(Entity, &mut Clock, &Transform, &Children), With<Interactable>>,
     mut q_child: Query<
         (&mut Transform, &ClockHandType),
         (Without<Interactable>, Without<ClockController>),
@@ -132,7 +174,7 @@ fn apply_clock_control(
         return;
     }
     let mut controller = result.unwrap();
-    if !controller.winding && !controller.setting {
+    if controller.held_clock.is_none() {
         return;
     }
 
@@ -146,29 +188,20 @@ fn apply_clock_control(
         controller.time_setting = controller.time_setting.min(3.0);
     }
 
-    let position = match controller.index {
-        0 => positions.clock_spawn.x,
-        1 => positions.clock_1.x,
-        2 => positions.clock_2.x,
-        3 => positions.clock_3.x,
-        4 => positions.clock_4.x,
-        5 => positions.clock_5.x,
-        6 => positions.oil_can.x,
-        _ => panic!("Invalid index"),
-    };
-
-    let children = clocks.iter_mut().find(|t| t.1.translation.x == position);
+    let children = clocks
+        .iter_mut()
+        .find(|t| controller.held_clock.is_some() && t.0 == controller.held_clock.unwrap());
     if children.is_none() {
         return;
     }
     let mut children = children.unwrap();
 
     if controller.winding {
-        children.0.time_left += time.delta_seconds() * 6.0;
+        children.1.time_left += time.delta_seconds() * 6.0;
     }
 
     if controller.setting {
-        for &child in children.2.iter() {
+        for &child in children.3.iter() {
             let child_result = q_child.get_mut(child);
 
             if let Ok((mut transform, hand_type)) = child_result {
@@ -223,6 +256,7 @@ fn tick_clocks(
 }
 
 fn score_clocks(
+    mut commands: Commands,
     time: Res<Time>,
     mut score: Query<(&mut Score, &mut Text)>,
     clocks: Query<(&Clock, &Children)>,
@@ -243,12 +277,42 @@ fn score_clocks(
         let hour_diff = main_rotations.hour.angle_between(clock_rotation.hour);
         let minute_diff = main_rotations.minute.angle_between(clock_rotation.minute);
 
+        println!("Score! {} {}", hour_diff, minute_diff);
         if hour_diff < 0.1 && minute_diff < 0.1 {
             score.0 += 1.0 * time.delta_seconds();
-            println!("Score! {} {}", hour_diff, minute_diff);
         }
     }
 
+    let clock_count = clocks.iter().count() - 1;
+
+    match clock_count {
+        1 => {
+            if score.0 > 25.0 {
+                commands.trigger(SpawnClock);
+            }
+        }
+        2 => {
+            if score.0 > 100.0 {
+                commands.trigger(SpawnClock);
+            }
+        }
+        3 => {
+            if score.0 > 250.0 {
+                commands.trigger(SpawnClock);
+            }
+        }
+        4 => {
+            if score.0 > 500.0 {
+                commands.trigger(SpawnClock);
+            }
+        }
+        5 => {
+            if score.0 > 1000.0 {
+                commands.trigger(SpawnClock);
+            }
+        }
+        _ => {}
+    }
     text.sections[0].value = format!("{:.0}", score.0);
 }
 
@@ -343,20 +407,26 @@ fn spawn_main_clock(
 fn spawn_interact_clock(
     _trigger: Trigger<SpawnClock>,
     positions: Res<Positions>,
+    clock_data: Res<Clocks>,
     mut commands: Commands,
     image_handles: Res<HandleMap<ImageKey>>,
-    clocks: Query<(&Clock, &Transform)>,
+    clocks: Query<(&Clock, &Transform), With<Interactable>>,
 ) {
     let clock_count = clocks.iter().count();
-    let translation = match clock_count {
-        1 => positions.clock_1,
-        2 => positions.clock_2,
-        3 => positions.clock_3,
-        4 => positions.clock_4,
-        5 => positions.clock_5,
-        _ => positions.clock_spawn,
-    };
+    let translation = positions.clock_spawn;
+    let clock_data = &clock_data.clocks[clock_count + 1];
 
+    let mut hour_transform = Transform {
+        translation: Vec3::new(0.0, 0.0, 30.0),
+        ..default()
+    };
+    // hour_transform.rotate_z(clock_data.hour_start_rotation);
+
+    let mut minute_transform = Transform {
+        translation: Vec3::new(0.0, 0.0, 40.0),
+        ..default()
+    };
+    // minute_transform.rotate_z(clock_data.minute_start_rotation);
     commands
         .spawn((
             Name::new("Clock"),
@@ -376,7 +446,7 @@ fn spawn_interact_clock(
             StateScoped(Screen::Playing),
             Clock {
                 is_main: false,
-                time_left: 0.0,
+                time_left: clock_data.time_left,
             },
             Interactable,
         ))
@@ -384,10 +454,7 @@ fn spawn_interact_clock(
             parent.spawn((
                 SpriteBundle {
                     texture: image_handles[&ImageKey::ClockHour].clone_weak(),
-                    transform: Transform {
-                        translation: Vec3::new(0.0, 0.0, 30.0),
-                        ..Default::default()
-                    },
+                    transform: hour_transform,
                     sprite: Sprite {
                         custom_size: Some(Vec2::new(90.0, 90.0)),
                         ..default()
@@ -400,10 +467,7 @@ fn spawn_interact_clock(
             parent.spawn((
                 SpriteBundle {
                     texture: image_handles[&ImageKey::ClockMinute].clone_weak(),
-                    transform: Transform {
-                        translation: Vec3::new(0.0, 0.0, 40.0),
-                        ..Default::default()
-                    },
+                    transform: minute_transform,
                     sprite: Sprite {
                         custom_size: Some(Vec2::new(90.0, 90.0)),
                         ..default()

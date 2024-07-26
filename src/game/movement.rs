@@ -26,7 +26,7 @@ pub struct MovementController(pub Vec2);
 fn movement(
     input: Res<ButtonInput<KeyCode>>,
     mut controller_query: Query<(&mut ClockController, &mut Transform), Without<Clock>>,
-    mut clocks: Query<(&mut Transform, &mut Clock), With<Interactable>>,
+    mut clocks: Query<(Entity, &mut Transform, &mut Clock), With<Interactable>>,
     positions: Res<Positions>,
 ) {
     let mut intent = Vec2::ZERO;
@@ -41,16 +41,12 @@ fn movement(
 
     let (mut controller, mut transform) = controller_query.get_single_mut().unwrap();
     controller.direction = intent;
-
-    if controller.direction == Vec2::ZERO
-        || controller.index == 0 && controller.direction.x < 0.0
-        || controller.index == 6 && controller.direction.x > 0.0
-    {
-        return;
+    if controller.index == 0 && controller.direction.x < 0.0 {
+        controller.index = 0;
+    } else {
+        controller.index = (controller.index as i32 + controller.direction.x as i32) as usize;
+        controller.index = controller.index.min(6);
     }
-
-    let prev_x = transform.translation.x;
-    controller.index = (controller.index as i32 + controller.direction.x as i32) as usize;
     let position = match controller.index {
         0 => positions.clock_spawn,
         1 => positions.clock_1,
@@ -62,23 +58,49 @@ fn movement(
         _ => panic!("Invalid index"),
     };
 
-    transform.translation.x = position.x;
-
-    let current_clock = clocks.iter_mut().find(|(t, _)| t.translation.x == prev_x);
-    if current_clock.is_some() {
-        let mut clock = current_clock.unwrap();
-        if !clock.1.is_main {
-            clock.0.translation.y = -220.0;
+    // pick up clock
+    if input.just_pressed(KeyCode::Space) {
+        if controller.held_clock.is_some() {
+            let clock_count = clocks
+                .iter_mut()
+                .filter(|(_, t, _)| t.translation.x == position.x)
+                .count();
+            if clock_count == 1 {
+                let clock = clocks
+                    .iter_mut()
+                    .find(|(e, _, _)| *e == controller.held_clock.unwrap());
+                if clock.is_some() {
+                    let mut clock = clock.unwrap();
+                    clock.1.translation.y = position.y;
+                    controller.held_clock = None;
+                }
+            }
+        } else {
+            let target_clock = clocks
+                .iter_mut()
+                .find(|(_, t, _)| t.translation.x == position.x);
+            if target_clock.is_some() {
+                let mut clock = target_clock.unwrap();
+                clock.1.translation.y = position.y + 30.0;
+                controller.held_clock = Some(clock.0);
+            }
         }
     }
 
-    let target_clock = clocks
-        .iter_mut()
-        .find(|(t, _)| t.translation.x == position.x);
-    if target_clock.is_some() {
-        let mut clock = target_clock.unwrap();
-        if !clock.1.is_main {
-            clock.0.translation.y = -190.0;
+    // move and move held clock
+    if controller.direction != Vec2::ZERO {
+        transform.translation.x = position.x;
+        let held_clock: Option<(Entity, Mut<Transform>, Mut<Clock>)> =
+            clocks.iter_mut().find(|(e, _, _)| {
+                if controller.held_clock.is_some() {
+                    return controller.held_clock.unwrap() == *e;
+                }
+                false
+            });
+
+        if held_clock.is_some() {
+            let mut clock = held_clock.unwrap();
+            clock.1.translation = transform.translation;
         }
     }
 }

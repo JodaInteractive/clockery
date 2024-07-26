@@ -1,6 +1,6 @@
 //! Spawn the main level by triggering other observers.
 
-use bevy::{asset::transformer, prelude::*};
+use bevy::prelude::*;
 
 use crate::{
     game::assets::{HandleMap, ImageKey},
@@ -68,10 +68,6 @@ fn spawn_level(_trigger: Trigger<SpawnLevel>, mut commands: Commands) {
     commands.trigger(SpawnPlayer);
     commands.trigger(SpawnTable);
     commands.trigger(SpawnMainClock);
-    commands.trigger(SpawnClock);
-    commands.trigger(SpawnClock);
-    commands.trigger(SpawnClock);
-    commands.trigger(SpawnClock);
     commands.trigger(SpawnClock);
     commands.trigger(SpawnOil);
     commands.trigger(SpawnScore);
