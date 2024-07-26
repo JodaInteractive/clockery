@@ -164,7 +164,7 @@ fn apply_clock_control(
     let mut children = children.unwrap();
 
     if controller.winding {
-        children.0.time_left += time.delta_seconds() * 1.0;
+        children.0.time_left += time.delta_seconds() * 6.0;
     }
 
     if controller.setting {
@@ -376,7 +376,7 @@ fn spawn_interact_clock(
             StateScoped(Screen::Playing),
             Clock {
                 is_main: false,
-                time_left: 60.0,
+                time_left: 0.0,
             },
             Interactable,
         ))
