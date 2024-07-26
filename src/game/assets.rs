@@ -26,6 +26,18 @@ pub enum ImageKey {
     MainClock,
     MainClockHour,
     MainClockMinute,
+    OilFull,
+    Oil90,
+    Oil80,
+    Oil70,
+    Oil60,
+    Oil50,
+    Oil40,
+    Oil30,
+    Oil20,
+    Oil10,
+    OilEmpty,
+    OilCan,
 }
 
 impl AssetKey for ImageKey {
@@ -48,7 +60,7 @@ impl FromWorld for HandleMap<ImageKey> {
             (
                 ImageKey::Tockery,
                 asset_server.load_with_settings(
-                    "images/tickery-tockery.png",
+                    "images/new-tickery-tockery.png",
                     |settings: &mut ImageLoaderSettings| {
                         settings.sampler = ImageSampler::nearest();
                     },
@@ -112,6 +124,105 @@ impl FromWorld for HandleMap<ImageKey> {
                 ImageKey::MainClockMinute,
                 asset_server.load_with_settings(
                     "images/main-clock-minute.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::OilFull,
+                asset_server.load_with_settings(
+                    "images/oil-full.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::Oil90,
+                asset_server.load_with_settings(
+                    "images/oil-90.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::Oil80,
+                asset_server.load_with_settings(
+                    "images/oil-80.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::Oil70,
+                asset_server.load_with_settings(
+                    "images/oil-70.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::Oil60,
+                asset_server.load_with_settings(
+                    "images/oil-60.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::Oil50,
+                asset_server.load_with_settings(
+                    "images/oil-50.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::Oil40,
+                asset_server.load_with_settings(
+                    "images/oil-40.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::Oil30,
+                asset_server.load_with_settings(
+                    "images/oil-30.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::Oil20,
+                asset_server.load_with_settings(
+                    "images/oil-20.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::Oil10,
+                asset_server.load_with_settings(
+                    "images/oil-10.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::OilCan,
+                asset_server.load_with_settings(
+                    "images/oil.png",
                     |settings: &mut ImageLoaderSettings| {
                         settings.sampler = ImageSampler::nearest();
                     },

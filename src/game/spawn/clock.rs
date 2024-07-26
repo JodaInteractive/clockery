@@ -66,6 +66,7 @@ pub struct ClockController {
     pub winding: bool,
     pub time_winding: f32,
     pub direction: Vec2,
+    pub oil_level: f32,
 }
 
 #[derive(Resource)]
@@ -124,7 +125,6 @@ fn apply_clock_control(
         (Without<Interactable>, Without<ClockController>),
     >,
 ) {
-    // check for control state
     let result = control_query.get_single_mut();
     if result.is_err() {
         return;
@@ -155,7 +155,6 @@ fn apply_clock_control(
         _ => panic!("Invalid index"),
     };
 
-    // find the clock that is being controlled
     let children = clocks.iter_mut().find(|t| t.1.translation.x == position);
     if children.is_none() {
         return;
@@ -166,10 +165,10 @@ fn apply_clock_control(
         children.0.time_left += time.delta_seconds() * 1.0;
     }
 
-    for &child in children.2.iter() {
-        let child_result = q_child.get_mut(child);
+    if controller.setting {
+        for &child in children.2.iter() {
+            let child_result = q_child.get_mut(child);
 
-        if controller.setting {
             if let Ok((mut transform, hand_type)) = child_result {
                 match hand_type {
                     ClockHandType::Hour => {
