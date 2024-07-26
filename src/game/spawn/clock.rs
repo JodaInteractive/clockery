@@ -442,13 +442,13 @@ fn spawn_interact_clock(
     let clock_data = &clock_data.clocks[clock_count];
 
     let mut hour_transform = Transform {
-        translation: Vec3::new(0.0, 0.0, 30.0),
+        translation: Vec3::new(0.0, 0.0, 300.0),
         ..default()
     };
     // hour_transform.rotate_z(clock_data.hour_start_rotation);
 
     let mut minute_transform = Transform {
-        translation: Vec3::new(0.0, 0.0, 40.0),
+        translation: Vec3::new(0.0, 0.0, 400.0),
         ..default()
     };
     // minute_transform.rotate_z(clock_data.minute_start_rotation);
@@ -458,7 +458,7 @@ fn spawn_interact_clock(
             SpriteBundle {
                 texture: image_handles[&ImageKey::Clock].clone_weak(),
                 transform: Transform {
-                    translation: Vec3::new(translation.x, translation.y, 20.0),
+                    translation: Vec3::new(translation.x, translation.y, 200.0),
                     ..Default::default()
                 },
                 sprite: Sprite {
