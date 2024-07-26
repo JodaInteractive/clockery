@@ -45,17 +45,21 @@ fn enter_credits(mut commands: Commands) {
 }
 
 fn exit_credits(mut commands: Commands) {
-    commands.trigger(PlaySoundtrack::Disable);
+    // commands.trigger(PlaySoundtrack::Disable);
 }
 
 fn handle_credits_action(
+    mut commands: Commands,
     mut next_screen: ResMut<NextState<Screen>>,
     mut button_query: InteractionQuery<&CreditsAction>,
 ) {
     for (interaction, action) in &mut button_query {
         if matches!(interaction, Interaction::Pressed) {
             match action {
-                CreditsAction::Back => next_screen.set(Screen::Title),
+                CreditsAction::Back => {
+                    next_screen.set(Screen::Title);
+                    commands.trigger(PlaySoundtrack::Key(SoundtrackKey::Menu));
+                }
             }
         }
     }

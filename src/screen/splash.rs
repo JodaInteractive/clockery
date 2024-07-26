@@ -6,7 +6,11 @@ use bevy::{
 };
 
 use super::Screen;
-use crate::{ui::prelude::*, AppSet};
+use crate::{
+    game::{assets::SoundtrackKey, audio::soundtrack::PlaySoundtrack},
+    ui::prelude::*,
+    AppSet,
+};
 
 pub(super) fn plugin(app: &mut App) {
     // Spawn splash screen.
@@ -42,6 +46,7 @@ const SPLASH_DURATION_SECS: f32 = 1.8;
 const SPLASH_FADE_DURATION_SECS: f32 = 0.6;
 
 fn spawn_splash(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.trigger(PlaySoundtrack::Key(SoundtrackKey::Menu));
     commands
         .ui_root()
         .insert((

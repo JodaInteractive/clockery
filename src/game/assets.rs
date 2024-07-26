@@ -344,6 +344,7 @@ impl FromWorld for HandleMap<SfxKey> {
 pub enum SoundtrackKey {
     Credits,
     Gameplay,
+    Menu,
 }
 
 impl AssetKey for SoundtrackKey {
@@ -356,11 +357,15 @@ impl FromWorld for HandleMap<SoundtrackKey> {
         [
             (
                 SoundtrackKey::Credits,
-                asset_server.load("audio/soundtracks/Monkeys Spinning Monkeys.ogg"),
+                asset_server.load("audio/soundtracks/credits.wav"),
             ),
             (
                 SoundtrackKey::Gameplay,
-                asset_server.load("audio/soundtracks/Fluffing A Duck.ogg"),
+                asset_server.load("audio/soundtracks/game.wav"),
+            ),
+            (
+                SoundtrackKey::Menu,
+                asset_server.load("audio/soundtracks/menu.wav"),
             ),
         ]
         .into()
