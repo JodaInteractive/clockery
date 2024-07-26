@@ -1,10 +1,97 @@
 use bevy::{audio::PlaybackMode, prelude::*};
 use rand::seq::SliceRandom;
 
-use crate::game::assets::{HandleMap, SfxKey};
+use crate::{
+    game::assets::{HandleMap, SfxKey},
+    screen::Screen,
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.observe(play_sfx);
+    app.insert_resource(SfxPlaying { states: vec![] });
+    app.observe(play_looping_sfx);
+    app.observe(stop_looping_sfx);
+}
+
+#[derive(Resource)]
+pub struct SfxPlaying {
+    pub states: Vec<(SfxKey, bool)>,
+}
+
+#[derive(Component, PartialEq)]
+pub struct LoopingSfx(pub SfxKey);
+
+fn play_looping_sfx(
+    trigger: Trigger<PlayLoopingSfx>,
+    mut commands: Commands,
+    sfx_handles: Res<HandleMap<SfxKey>>,
+    mut sfx_playing: ResMut<SfxPlaying>,
+) {
+    let sfx_key = match trigger.event() {
+        PlayLoopingSfx::Key(key) => *key,
+    };
+
+    let handle = sfx_handles[&sfx_key].clone_weak();
+    let state = sfx_playing
+        .states
+        .iter_mut()
+        .find(|(key, _)| *key == sfx_key);
+
+    let mut play = false;
+    if state.is_none() {
+        sfx_playing.states.push((sfx_key, true));
+        play = true;
+    } else {
+        let (_, playing) = state.unwrap();
+        if !*playing {
+            *playing = true;
+            play = true;
+        }
+    }
+
+    if play {
+        commands.spawn((
+            AudioSourceBundle {
+                source: handle,
+                settings: PlaybackSettings {
+                    mode: PlaybackMode::Loop,
+                    ..default()
+                },
+            },
+            StateScoped(Screen::Playing),
+            LoopingSfx(sfx_key),
+        ));
+    }
+}
+
+fn stop_looping_sfx(
+    trigger: Trigger<StopLoopingSfx>,
+    mut commands: Commands,
+    audio: Query<(Entity, &LoopingSfx)>,
+    mut sfx_playing: ResMut<SfxPlaying>,
+) {
+    let sfx_key = match trigger.event() {
+        StopLoopingSfx::Key(key) => *key,
+    };
+
+    let state = sfx_playing
+        .states
+        .iter_mut()
+        .find(|(key, _)| *key == sfx_key);
+
+    if let Some((_, playing)) = state {
+        *playing = false;
+
+        for (entity, sfx) in audio.iter() {
+            if sfx == &LoopingSfx(sfx_key) {
+                sfx_playing.states.retain(|(key, _)| *key != sfx_key);
+                let e = commands.get_entity(entity);
+                if let Some(e) = e {
+                    e.despawn_recursive();
+                }
+            }
+        }
+    }
 }
 
 fn play_sfx(
@@ -30,6 +117,16 @@ fn play_sfx(
 pub enum PlaySfx {
     Key(SfxKey),
     RandomStep,
+}
+
+#[derive(Event)]
+pub enum PlayLoopingSfx {
+    Key(SfxKey),
+}
+
+#[derive(Event)]
+pub enum StopLoopingSfx {
+    Key(SfxKey),
 }
 
 fn random_step() -> SfxKey {

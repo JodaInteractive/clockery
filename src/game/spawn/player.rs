@@ -2,7 +2,8 @@ use bevy::prelude::*;
 
 use crate::{
     game::{
-        assets::{HandleMap, ImageKey},
+        assets::{HandleMap, ImageKey, SfxKey},
+        audio::sfx::{PlayLoopingSfx, PlaySfx, StopLoopingSfx},
         movement::MovementController,
     },
     screen::Screen,
@@ -29,20 +30,21 @@ pub struct OilMeter;
 
 fn oil_drink(
     time: Res<Time>,
+    mut commands: Commands,
     mut control_query: Query<&mut ClockController>,
     input: Res<ButtonInput<KeyCode>>,
 ) {
-    if !input.pressed(KeyCode::Space) {
+    let mut controller = control_query.single_mut();
+    if controller.index != 6 || !input.pressed(KeyCode::Space) {
+        commands.trigger(StopLoopingSfx::Key(SfxKey::OilDrink));
         return;
     }
 
-    let mut controller = control_query.single_mut();
+    commands.trigger(PlayLoopingSfx::Key(SfxKey::OilDrink));
 
-    if controller.index == 6 {
-        controller.oil_level += time.delta_seconds() * 10.0;
-        if controller.oil_level > 100.0 {
-            controller.oil_level = 100.0;
-        }
+    controller.oil_level += time.delta_seconds() * 10.0;
+    if controller.oil_level > 100.0 {
+        controller.oil_level = 100.0;
     }
 }
 
