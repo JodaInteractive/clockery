@@ -13,6 +13,30 @@ pub(super) fn plugin(app: &mut App) {
 
     app.register_type::<HandleMap<SoundtrackKey>>();
     app.init_resource::<HandleMap<SoundtrackKey>>();
+
+    app.register_type::<HandleMap<FontKey>>();
+    app.init_resource::<HandleMap<FontKey>>();
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Reflect)]
+pub enum FontKey {
+    Arrancar,
+    Guavine,
+}
+
+impl AssetKey for FontKey {
+    type Asset = Font;
+}
+
+impl FromWorld for HandleMap<FontKey> {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.resource::<AssetServer>();
+        [
+            (FontKey::Arrancar, asset_server.load("fonts/arrancar.ttf")),
+            (FontKey::Guavine, asset_server.load("fonts/guavine.otf")),
+        ]
+        .into()
+    }
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Reflect)]
@@ -41,6 +65,11 @@ pub enum ImageKey {
     ClockTable,
     OilTable,
     Background,
+    TitleBackground,
+    Gear,
+    TitleHand,
+    StartButton,
+    CreditsButton,
 }
 
 impl AssetKey for ImageKey {
@@ -253,6 +282,51 @@ impl FromWorld for HandleMap<ImageKey> {
                 ImageKey::Background,
                 asset_server.load_with_settings(
                     "images/background.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::TitleBackground,
+                asset_server.load_with_settings(
+                    "images/title-background.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::Gear,
+                asset_server.load_with_settings(
+                    "images/gear.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::TitleHand,
+                asset_server.load_with_settings(
+                    "images/title-hand.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::StartButton,
+                asset_server.load_with_settings(
+                    "images/start-button.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::CreditsButton,
+                asset_server.load_with_settings(
+                    "images/credits-button.png",
                     |settings: &mut ImageLoaderSettings| {
                         settings.sampler = ImageSampler::nearest();
                     },
