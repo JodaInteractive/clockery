@@ -4,7 +4,7 @@ use bevy::prelude::*;
 
 use crate::{
     game::assets::{HandleMap, ImageKey},
-    screen::Screen,
+    screen::{PlayingState, Screen},
 };
 
 use super::clock::{Positions, SpawnClock, SpawnMainClock};
@@ -18,6 +18,8 @@ pub(super) fn plugin(app: &mut App) {
     app.observe(spawn_clock_table);
     app.observe(spawn_oil_table);
     app.observe(spawn_background);
+
+    app.insert_resource(Scoresource(0.0));
 }
 
 #[derive(Event, Debug)]
@@ -41,6 +43,9 @@ pub struct SpawnOilTable;
 #[derive(Component)]
 pub struct Score(pub f32);
 
+#[derive(Resource)]
+pub struct Scoresource(pub f32);
+
 #[derive(Event, Debug)]
 pub struct SpawnBackground;
 
@@ -63,7 +68,11 @@ fn spawn_background(
     });
 }
 
-fn spawn_level(_trigger: Trigger<SpawnLevel>, mut commands: Commands) {
+fn spawn_level(
+    _trigger: Trigger<SpawnLevel>,
+    mut commands: Commands,
+    mut scoresource: ResMut<Scoresource>,
+) {
     commands.trigger(SpawnBackground);
     commands.trigger(SpawnPlayer);
     commands.trigger(SpawnTable);
@@ -73,6 +82,7 @@ fn spawn_level(_trigger: Trigger<SpawnLevel>, mut commands: Commands) {
     commands.trigger(SpawnScore);
     commands.trigger(SpawnClockTable);
     commands.trigger(SpawnOilTable);
+    scoresource.0 = 0.0;
 }
 
 fn spawn_table(

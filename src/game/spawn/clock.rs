@@ -5,11 +5,11 @@ use crate::{
         assets::{HandleMap, ImageKey, SfxKey},
         audio::sfx::{PlayLoopingSfx, PlaySfx, StopLoopingSfx},
     },
-    screen::Screen,
+    screen::{PlayingState, Screen},
     AppSet,
 };
 
-use super::level::Score;
+use super::level::{Score, Scoresource};
 
 pub(super) fn plugin(app: &mut App) {
     app.observe(spawn_interact_clock);
@@ -19,19 +19,22 @@ pub(super) fn plugin(app: &mut App) {
         (tick_clocks, score_clocks)
             .chain()
             .in_set(AppSet::FixedUpdate)
-            .run_if(in_state(Screen::Playing)),
+            .run_if(in_state(Screen::Playing))
+            .run_if(in_state(PlayingState::Playing)),
     );
     app.add_systems(
         Update,
         record_clock_controller
             .in_set(AppSet::RecordInput)
-            .run_if(in_state(Screen::Playing)),
+            .run_if(in_state(Screen::Playing))
+            .run_if(in_state(PlayingState::Playing)),
     );
     app.add_systems(
         FixedUpdate,
         apply_clock_control
             .in_set(AppSet::Update)
-            .run_if(in_state(Screen::Playing)),
+            .run_if(in_state(Screen::Playing))
+            .run_if(in_state(PlayingState::Playing)),
     );
     app.insert_resource(Positions {
         clock_spawn: Vec2::new(-550.0, -185.0),
@@ -299,6 +302,7 @@ fn score_clocks(
     mut score: Query<(&mut Score, &mut Text)>,
     clocks: Query<(&Clock, &Children)>,
     clock_children: Query<(&Transform, &ClockHandType)>,
+    mut scoresource: ResMut<Scoresource>,
 ) {
     let main = clocks.iter().find(|(clock, _)| clock.is_main).unwrap();
     let main_rotations = get_clock_rotations(main.1, &clock_children);
@@ -352,6 +356,7 @@ fn score_clocks(
         _ => {}
     }
     text.sections[0].value = format!("{:.0}", score.0);
+    scoresource.0 = score.0;
 }
 
 struct ClockRotations {
@@ -511,7 +516,7 @@ fn spawn_interact_clock(
                 SpriteBundle {
                     texture: image_handles[&ImageKey::ClockMinute].clone_weak(),
                     transform: Transform {
-                        translation: Vec3::new(0.0, 0.0, 400.0),
+                        translation: Vec3::new(0.0, 0.0, 350.0),
                         ..default()
                     },
                     sprite: Sprite {

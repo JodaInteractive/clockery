@@ -31,3 +31,10 @@ pub enum Screen {
     Credits,
     Playing,
 }
+
+#[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
+pub enum PlayingState {
+    Playing,
+    GameOver,
+    Disabled,
+}

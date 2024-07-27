@@ -6,7 +6,7 @@ use crate::{
         audio::sfx::{PlayLoopingSfx, StopLoopingSfx},
         movement::MovementController,
     },
-    screen::Screen,
+    screen::{PlayingState, Screen},
 };
 
 use super::clock::ClockController;
@@ -14,8 +14,18 @@ use super::clock::ClockController;
 pub(super) fn plugin(app: &mut App) {
     app.observe(spawn_player);
     app.register_type::<Player>();
-    app.add_systems(Update, oil_leak.run_if(in_state(Screen::Playing)));
-    app.add_systems(Update, oil_drink.run_if(in_state(Screen::Playing)));
+    app.add_systems(
+        Update,
+        oil_leak
+            .run_if(in_state(Screen::Playing))
+            .run_if(in_state(PlayingState::Playing)),
+    );
+    app.add_systems(
+        Update,
+        oil_drink
+            .run_if(in_state(Screen::Playing))
+            .run_if(in_state(PlayingState::Playing)),
+    );
 }
 
 #[derive(Event, Debug)]
@@ -53,11 +63,13 @@ fn oil_leak(
     mut query: Query<(&mut Handle<Image>, &mut Sprite), With<OilMeter>>,
     time: Res<Time>,
     images: Res<HandleMap<ImageKey>>,
+    mut next_state: ResMut<NextState<PlayingState>>,
 ) {
     let mut controller = controller.single_mut();
     controller.oil_level -= time.delta_seconds() * controller.oil_leak;
     if controller.oil_level <= 0.0 {
         println!("Game over!");
+        next_state.set(PlayingState::GameOver);
         return;
     }
     controller.oil_leak += time.delta_seconds() * 0.01;

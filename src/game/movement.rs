@@ -10,7 +10,10 @@ use super::{
     audio::sfx::PlaySfx,
     spawn::clock::{Clock, ClockController, Interactable, Positions},
 };
-use crate::{screen::Screen, AppSet};
+use crate::{
+    screen::{PlayingState, Screen},
+    AppSet,
+};
 
 pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
@@ -19,7 +22,8 @@ pub(super) fn plugin(app: &mut App) {
         Update,
         movement
             .in_set(AppSet::RecordInput)
-            .run_if(in_state(Screen::Playing)),
+            .run_if(in_state(Screen::Playing))
+            .run_if(in_state(PlayingState::Playing)),
     );
 }
 

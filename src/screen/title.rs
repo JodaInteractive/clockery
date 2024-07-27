@@ -1,8 +1,8 @@
 //! The title screen that appears when the game starts.
 
-use bevy::{prelude::*, render::camera, window::PrimaryWindow};
+use bevy::{prelude::*, window::PrimaryWindow};
 
-use super::Screen;
+use super::{PlayingState, Screen};
 use crate::{
     game::assets::{FontKey, HandleMap, ImageKey},
     ui::prelude::*,
@@ -13,16 +13,21 @@ pub(super) fn plugin(app: &mut App) {
 
     app.register_type::<TitleAction>();
     app.add_systems(Update, handle_title_action.run_if(in_state(Screen::Title)));
+    app.add_systems(
+        Update,
+        handle_title_action.run_if(in_state(PlayingState::GameOver)),
+    );
 }
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Reflect)]
 #[reflect(Component)]
-enum TitleAction {
+pub enum TitleAction {
     Play,
     Credits,
     /// Exit doesn't work well with embedded applications.
     #[cfg(not(target_family = "wasm"))]
     Exit,
+    Menu,
 }
 
 #[derive(Component)]
@@ -232,8 +237,11 @@ fn handle_title_action(
     for (interaction, action) in &mut button_query {
         if matches!(interaction, Interaction::Pressed) {
             match action {
-                TitleAction::Play => next_screen.set(Screen::Playing),
+                TitleAction::Play => {
+                    next_screen.set(Screen::Playing);
+                }
                 TitleAction::Credits => next_screen.set(Screen::Credits),
+                TitleAction::Menu => next_screen.set(Screen::Title),
 
                 #[cfg(not(target_family = "wasm"))]
                 TitleAction::Exit => {

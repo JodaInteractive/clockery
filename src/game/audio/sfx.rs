@@ -14,6 +14,7 @@ pub(super) fn plugin(app: &mut App) {
     app.insert_resource(SfxPlaying { states: vec![] });
     app.observe(play_looping_sfx);
     app.observe(stop_looping_sfx);
+    app.observe(stop_all_looping_sfx);
 }
 
 #[derive(Resource)]
@@ -112,6 +113,30 @@ fn stop_looping_sfx(
     }
 }
 
+fn stop_all_looping_sfx(
+    _trigger: Trigger<StopAllLoopingSfx>,
+    mut commands: Commands,
+    audio: Query<(Entity, &LoopingSfx)>,
+    mut sfx_playing: ResMut<SfxPlaying>,
+) {
+    let mut s = sfx_playing.states.clone();
+    let states = sfx_playing.states.iter_mut();
+
+    for (sfx_key, playing) in states {
+        *playing = false;
+
+        for (entity, sfx) in audio.iter() {
+            if sfx == &LoopingSfx(*sfx_key) {
+                s.retain(|(key, _)| *key != *sfx_key);
+                let e = commands.get_entity(entity);
+                if let Some(e) = e {
+                    e.despawn_recursive();
+                }
+            }
+        }
+    }
+}
+
 fn play_sfx(
     trigger: Trigger<PlaySfx>,
     mut commands: Commands,
@@ -146,6 +171,9 @@ pub enum PlayLoopingSfx {
 pub enum StopLoopingSfx {
     Key(SfxKey),
 }
+
+#[derive(Event)]
+pub struct StopAllLoopingSfx;
 
 fn random_step() -> SfxKey {
     [SfxKey::Step1, SfxKey::Step2, SfxKey::Step3, SfxKey::Step4]
