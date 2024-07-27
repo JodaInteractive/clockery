@@ -30,12 +30,21 @@ fn enter_credits(mut commands: Commands) {
         .insert(StateScoped(Screen::Credits))
         .with_children(|children| {
             children.header("Made by");
-            children.label("Joda - Code");
-            children.label("Hildeblue - Art and Assets");
+            children.label("Joda - Game Design and Programming");
+            children.label("Hildeblue - Game Design, Art, and Asset Curation");
 
             children.header("3rd Party Assets");
             children.label("Bevy logo - All rights reserved by the Bevy Foundation. Permission granted for splash screen use when unmodified.");
-            children.label("Font: 7 Segmental Digital Display by Ash Pikachu Font");
+
+            children.label("Soundtrack: Main Menu - Clock Tower by DSTechnician");
+            children.label("Soundtrack: Gameplay - Fast Jazz by Wavemaster");
+            children.label("Soundtrack: Game Over / Credits - Going Forward by u_i8dn2oht5o on Pixabay");
+
+            children.label("SFX: Oil Fill - Pour Water Glug 1 by floraphobic");
+            children.label("SFX: All others from Pixabay - Wind-up2, Stomp, metal clanks, Metal_03, Metal Clang Sound, bicycle ringing, Metal Lever 1, Clock ticking, natural room verb");
+
+            children.label("Font: Arrancar by daredemotypo");
+            children.label("Font: Guavine by Craft Supply Co");
 
             children.button("Back").insert(CreditsAction::Back);
         });

@@ -58,7 +58,7 @@ impl<T: Spawn> Widgets for T {
             Name::new("Header"),
             NodeBundle {
                 style: Style {
-                    width: Px(500.0),
+                    width: Px(600.0),
                     height: Px(65.0),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
@@ -89,7 +89,7 @@ impl<T: Spawn> Widgets for T {
             Name::new("Label"),
             NodeBundle {
                 style: Style {
-                    width: Px(500.0),
+                    width: Px(600.0),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     ..default()
