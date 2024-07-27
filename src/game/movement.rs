@@ -115,7 +115,7 @@ fn movement(
 
         if held_clock.is_some() {
             let mut clock = held_clock.unwrap();
-            clock.1.translation = transform.translation;
+            clock.1.translation.x = transform.translation.x;
         }
     }
 }
