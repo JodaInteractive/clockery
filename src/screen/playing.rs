@@ -219,7 +219,7 @@ fn game_over(
                 ..default()
             },
             image: UiImage {
-                texture: images[&ImageKey::StartButton].clone_weak(),
+                texture: images[&ImageKey::SubmitButton].clone_weak(),
                 ..default()
             },
             ..default()
