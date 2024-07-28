@@ -6,6 +6,10 @@ use bevy::{
     },
     prelude::*,
 };
+use bevy_http_client::{
+    prelude::{HttpTypedRequestTrait, TypedRequest, TypedResponse},
+    HttpClient,
+};
 use serde::{Deserialize, Serialize};
 
 use super::{title::TitleAction, PlayingState, Screen};
@@ -32,6 +36,10 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, name_input.run_if(in_state(PlayingState::GameOver)));
 
     app.insert_state(PlayingState::Playing);
+
+    app.register_request_type::<Vec<LeaderboardRecord>>();
+    app.register_request_type::<LeaderboardBody>();
+    app.add_systems(Update, handle_response);
 }
 
 fn enter_playing(mut commands: Commands, mut next_state: ResMut<NextState<PlayingState>>) {
@@ -54,8 +62,8 @@ fn return_to_title_screen(mut next_screen: ResMut<NextState<Screen>>, mut comman
     next_screen.set(Screen::Title);
 }
 
-#[derive(Serialize, Debug)]
-struct LeaderboardBody {
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LeaderboardBody {
     name: String,
     score: f32,
 }
@@ -74,7 +82,10 @@ fn game_over(
     scoresource: Res<Scoresource>,
     images: Res<HandleMap<ImageKey>>,
     name: Res<NameResource>,
+    mut ev_request: EventWriter<TypedRequest<Vec<LeaderboardRecord>>>,
 ) {
+    get_scores(ev_request);
+
     commands.trigger(StopAllLoopingSfx);
     commands.trigger(PlaySoundtrack::Key(SoundtrackKey::Credits));
     commands.spawn((
@@ -273,8 +284,6 @@ fn game_over(
         StateScoped(Screen::Playing),
     ));
 
-    let scores = get_scores();
-
     commands.spawn((
         TextBundle {
             text: Text::from_section(
@@ -298,51 +307,6 @@ fn game_over(
         StateScoped(PlayingState::GameOver),
         StateScoped(Screen::Playing),
     ));
-
-    for (i, score) in scores.iter().enumerate() {
-        let text = format!("{}. {} - {:.2}", i + 1, score.name, score.score);
-        commands.spawn((
-            TextBundle {
-                text: Text::from_section(
-                    text,
-                    TextStyle {
-                        font_size: 20.0,
-                        color: Color::WHITE,
-                        ..default()
-                    },
-                ),
-                style: Style {
-                    justify_self: JustifySelf::Center,
-                    margin: UiRect {
-                        top: Val::Px(190.0 + (i as f32 * 20.0)),
-                        ..default()
-                    },
-                    ..default()
-                },
-                ..default()
-            },
-            StateScoped(PlayingState::GameOver),
-            StateScoped(Screen::Playing),
-        ));
-    }
-}
-
-pub fn submit_score(name: String, score: f32) {
-    let body = LeaderboardBody { name, score };
-    println!("Posting to leaderboard: {:?}", body);
-
-    let client = reqwest::blocking::Client::new();
-    match client
-        .post("https://sr5t5qmb4c.execute-api.us-east-1.amazonaws.com/prod/leaderboard")
-        .json(&body)
-        .send()
-    {
-        Ok(res) => res,
-        Err(e) => {
-            eprintln!("Failed to post to leaderboard: {}", e);
-            return;
-        }
-    };
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -352,19 +316,58 @@ struct LeaderboardRecord {
     score: f32,
 }
 
-fn get_scores() -> Vec<LeaderboardRecord> {
-    let client = reqwest::blocking::Client::new();
-    match client
-        .get("https://sr5t5qmb4c.execute-api.us-east-1.amazonaws.com/prod/leaderboard")
-        .send()
-    {
-        Ok(res) => {
-            let scores: Vec<LeaderboardRecord> = res.json().unwrap();
-            scores.into_iter().take(10).collect()
-        }
-        Err(e) => {
-            eprintln!("Failed to get leaderboard: {}", e);
-            vec![]
+pub fn submit_score(
+    name: String,
+    score: f32,
+    mut ev_request: &mut EventWriter<TypedRequest<LeaderboardBody>>,
+) {
+    let body = LeaderboardBody { name, score };
+    ev_request.send(
+        HttpClient::new()
+            .post("https://sr5t5qmb4c.execute-api.us-east-1.amazonaws.com/prod/leaderboard")
+            .json(&body)
+            .with_type::<LeaderboardBody>(),
+    );
+}
+
+fn get_scores(mut ev_request: EventWriter<TypedRequest<Vec<LeaderboardRecord>>>) {
+    ev_request.send(
+        HttpClient::new()
+            .get("https://sr5t5qmb4c.execute-api.us-east-1.amazonaws.com/prod/leaderboard")
+            .with_type::<Vec<LeaderboardRecord>>(),
+    );
+}
+
+fn handle_response(
+    mut commands: Commands,
+    mut ev_response: EventReader<TypedResponse<Vec<LeaderboardRecord>>>,
+) {
+    for res in ev_response.read() {
+        for (i, score) in res.iter().take(10).enumerate() {
+            let text = format!("{}. {} - {:.2}", i + 1, score.name, score.score);
+            commands.spawn((
+                TextBundle {
+                    text: Text::from_section(
+                        text,
+                        TextStyle {
+                            font_size: 20.0,
+                            color: Color::WHITE,
+                            ..default()
+                        },
+                    ),
+                    style: Style {
+                        justify_self: JustifySelf::Center,
+                        margin: UiRect {
+                            top: Val::Px(190.0 + (i as f32 * 20.0)),
+                            ..default()
+                        },
+                        ..default()
+                    },
+                    ..default()
+                },
+                StateScoped(PlayingState::GameOver),
+                StateScoped(Screen::Playing),
+            ));
         }
     }
 }

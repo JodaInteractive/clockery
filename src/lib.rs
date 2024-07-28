@@ -10,6 +10,7 @@ use bevy::{
     prelude::*,
     window::{WindowMode, WindowResolution},
 };
+use bevy_http_client::HttpClientPlugin;
 
 pub struct AppPlugin;
 
@@ -55,6 +56,8 @@ impl Plugin for AppPlugin {
 
         // Add other plugins.
         app.add_plugins((game::plugin, screen::plugin, ui::plugin));
+
+        app.add_plugins(HttpClientPlugin);
 
         // Enable dev tools for dev builds.
         #[cfg(feature = "dev")]

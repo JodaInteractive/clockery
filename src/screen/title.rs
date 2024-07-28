@@ -1,9 +1,10 @@
 //! The title screen that appears when the game starts.
 
 use bevy::{prelude::*, window::PrimaryWindow};
+use bevy_http_client::prelude::TypedRequest;
 
 use super::{
-    playing::{submit_score, NameResource, SubmitScoreButton},
+    playing::{submit_score, LeaderboardBody, NameResource, SubmitScoreButton},
     PlayingState, Screen,
 };
 use crate::{
@@ -216,6 +217,7 @@ fn handle_title_action(
     name: Res<NameResource>,
     scoresource: Res<Scoresource>,
     submit_score_button: Query<Entity, With<SubmitScoreButton>>,
+    mut ev_request: EventWriter<TypedRequest<LeaderboardBody>>,
 ) {
     for mut gear in gears.iter_mut() {
         gear.rotate_z(0.1 * time.delta_seconds());
@@ -266,7 +268,7 @@ fn handle_title_action(
                             e.despawn_recursive();
                         }
                     }
-                    submit_score(name.0.clone().unwrap(), scoresource.0);
+                    submit_score(name.0.clone().unwrap(), scoresource.0, &mut ev_request);
                 }
             }
         }
