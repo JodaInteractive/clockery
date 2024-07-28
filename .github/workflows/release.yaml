@@ -121,6 +121,7 @@ jobs:
       - name: Install and run trunk (Web)
         if: ${{ matrix.platform == 'web' }}
         run: |
+          cd game
           cargo binstall trunk --no-confirm
           trunk build --release --dist '${{ env.OUT_DIR }}'
 
@@ -128,7 +129,7 @@ jobs:
         if: ${{ matrix.platform != 'web' }}
         run: |
           for target in ${{ matrix.targets }}; do
-            cargo build --profile='${{ matrix.profile }}' --target="${target}" --no-default-features --features='${{ matrix.features }}'
+            cargo +nightly -C game build --profile='${{ matrix.profile }}' --target="${target}" --no-default-features --features='${{ matrix.features }} -Z unstable-options'
             mv target/"${target}"/'${{ matrix.profile }}/${{ env.BINARY }}${{ matrix.binary_ext }}' tmp/binary/"${target}"'${{ matrix.binary_ext }}'
           done
 

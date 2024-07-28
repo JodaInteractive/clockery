@@ -2,9 +2,15 @@
 
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use super::{PlayingState, Screen};
+use super::{
+    playing::{submit_score, NameResource, SubmitScoreButton},
+    PlayingState, Screen,
+};
 use crate::{
-    game::assets::{FontKey, HandleMap, ImageKey},
+    game::{
+        assets::{FontKey, HandleMap, ImageKey},
+        spawn::level::Scoresource,
+    },
     ui::prelude::*,
 };
 
@@ -28,6 +34,7 @@ pub enum TitleAction {
     #[cfg(not(target_family = "wasm"))]
     Exit,
     Menu,
+    SubmitScore,
 }
 
 #[derive(Component)]
@@ -197,6 +204,7 @@ fn enter_title(
 }
 
 fn handle_title_action(
+    mut commands: Commands,
     time: Res<Time>,
     mut next_screen: ResMut<NextState<Screen>>,
     mut button_query: InteractionQuery<&TitleAction>,
@@ -205,6 +213,9 @@ fn handle_title_action(
     q_window: Query<&Window, With<PrimaryWindow>>,
     q_camera: Query<(&Camera, &GlobalTransform)>,
     mut gears: Query<&mut Transform, (With<Gear>, Without<TitleHand>)>,
+    name: Res<NameResource>,
+    scoresource: Res<Scoresource>,
+    submit_score_button: Query<Entity, With<SubmitScoreButton>>,
 ) {
     for mut gear in gears.iter_mut() {
         gear.rotate_z(0.1 * time.delta_seconds());
@@ -246,6 +257,16 @@ fn handle_title_action(
                 #[cfg(not(target_family = "wasm"))]
                 TitleAction::Exit => {
                     app_exit.send(AppExit::Success);
+                }
+                TitleAction::SubmitScore => {
+                    let button = submit_score_button.get_single();
+                    if button.is_ok() {
+                        let e = commands.get_entity(button.unwrap());
+                        if let Some(e) = e {
+                            e.despawn_recursive();
+                        }
+                    }
+                    submit_score(name.0.clone().unwrap(), scoresource.0);
                 }
             }
         }

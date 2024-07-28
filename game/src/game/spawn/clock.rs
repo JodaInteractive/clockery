@@ -355,7 +355,7 @@ fn score_clocks(
         }
         _ => {}
     }
-    text.sections[0].value = format!("{:.0}", score.0);
+    text.sections[0].value = format!("{:.2}", score.0);
     scoresource.0 = score.0;
 }
 
