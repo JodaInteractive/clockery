@@ -86,7 +86,7 @@ pub struct Clock {
 }
 
 #[derive(Component)]
-enum ClockHandType {
+pub enum ClockHandType {
     Hour,
     Minute,
 }
@@ -319,7 +319,6 @@ fn score_clocks(
         let hour_diff = main_rotations.hour.angle_between(clock_rotation.hour);
         let minute_diff = main_rotations.minute.angle_between(clock_rotation.minute);
 
-        println!("Score! {} {}", hour_diff, minute_diff);
         if hour_diff < 0.1 && minute_diff < 0.1 {
             score.0 += 1.0 * time.delta_seconds();
         }
@@ -472,7 +471,7 @@ fn spawn_interact_clock(
             SpriteBundle {
                 texture: image_handles[&ImageKey::Clock].clone_weak(),
                 transform: Transform {
-                    translation: Vec3::new(translation.x, translation.y, 200.0),
+                    translation: Vec3::new(translation.x, translation.y, 300.0),
                     ..Default::default()
                 },
                 sprite: Sprite {
@@ -495,7 +494,7 @@ fn spawn_interact_clock(
                 SpriteBundle {
                     texture: image_handles[&ImageKey::ClockHour].clone_weak(),
                     transform: Transform {
-                        translation: Vec3::new(0.0, 0.0, 300.0),
+                        translation: Vec3::new(0.0, 0.0, 10.0),
                         ..default()
                     },
                     sprite: Sprite {
@@ -511,7 +510,7 @@ fn spawn_interact_clock(
                 SpriteBundle {
                     texture: image_handles[&ImageKey::ClockMinute].clone_weak(),
                     transform: Transform {
-                        translation: Vec3::new(0.0, 0.0, 350.0),
+                        translation: Vec3::new(0.0, 0.0, 10.0),
                         ..default()
                     },
                     sprite: Sprite {

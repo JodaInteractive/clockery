@@ -122,7 +122,7 @@ fn spawn_oil(
         SpriteBundle {
             texture: image_handles[&ImageKey::OilCan].clone_weak(),
             transform: Transform {
-                translation: positions.oil_can.extend(10.0),
+                translation: positions.oil_can.extend(210.0),
                 ..default()
             },
             sprite: Sprite {

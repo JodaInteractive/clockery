@@ -8,7 +8,7 @@ use bevy::prelude::*;
 use super::{
     assets::SfxKey,
     audio::sfx::PlaySfx,
-    spawn::clock::{Clock, ClockController, Interactable, Positions},
+    spawn::clock::{Clock, ClockController, ClockHandType, Interactable, Positions},
 };
 use crate::{
     screen::{PlayingState, Screen},
@@ -35,7 +35,15 @@ fn movement(
     mut commands: Commands,
     input: Res<ButtonInput<KeyCode>>,
     mut controller_query: Query<(&mut ClockController, &mut Transform), Without<Clock>>,
-    mut clocks: Query<(Entity, &mut Transform, &mut Clock), With<Interactable>>,
+    mut clocks: Query<(Entity, &mut Transform, &mut Clock, &Children), With<Interactable>>,
+    clock_children: Query<
+        &Transform,
+        (
+            With<ClockHandType>,
+            Without<Clock>,
+            Without<ClockController>,
+        ),
+    >,
     positions: Res<Positions>,
 ) {
     let mut intent = Vec2::ZERO;
@@ -73,15 +81,25 @@ fn movement(
             if controller.index != 0 {
                 let clock_count = clocks
                     .iter_mut()
-                    .filter(|(_, t, _)| t.translation.x == position.x)
+                    .filter(|(_, t, _, _)| t.translation.x == position.x)
                     .count();
                 if clock_count == 1 {
                     let clock = clocks
                         .iter_mut()
-                        .find(|(e, _, _)| *e == controller.held_clock.unwrap());
+                        .find(|(e, _, _, _)| *e == controller.held_clock.unwrap());
                     if clock.is_some() {
                         let mut clock = clock.unwrap();
                         clock.1.translation.y = position.y;
+                        clock.1.translation.z = 300.0;
+
+                        let hour = clock.3.first().unwrap();
+                        let mut hour_transform = *clock_children.get(*hour).unwrap();
+                        hour_transform.translation.z = 310.0;
+
+                        let minute = clock.3.get(1).unwrap();
+                        let mut minute_transform = *clock_children.get(*minute).unwrap();
+                        minute_transform.translation.z = 310.0;
+
                         controller.held_clock = None;
                     }
                 }
@@ -99,10 +117,20 @@ fn movement(
         } else {
             let target_clock = clocks
                 .iter_mut()
-                .find(|(_, t, _)| t.translation.x == position.x);
+                .find(|(_, t, _, _)| t.translation.x == position.x);
             if target_clock.is_some() {
                 let mut clock = target_clock.unwrap();
                 clock.1.translation.y = position.y + 30.0;
+                clock.1.translation.z = 200.0;
+
+                let hour = clock.3.first().unwrap();
+                let mut hour_transform = *clock_children.get(*hour).unwrap();
+                hour_transform.translation.z = 210.0;
+
+                let minute = clock.3.get(1).unwrap();
+                let mut minute_transform = *clock_children.get(*minute).unwrap();
+                minute_transform.translation.z = 210.0;
+
                 controller.held_clock = Some(clock.0);
             }
         }
@@ -111,8 +139,8 @@ fn movement(
     // move and move held clock
     if controller.direction != Vec2::ZERO {
         transform.translation.x = position.x;
-        let held_clock: Option<(Entity, Mut<Transform>, Mut<Clock>)> =
-            clocks.iter_mut().find(|(e, _, _)| {
+        let held_clock: Option<(Entity, Mut<Transform>, Mut<Clock>, &Children)> =
+            clocks.iter_mut().find(|(e, _, _, _)| {
                 if controller.held_clock.is_some() {
                     return controller.held_clock.unwrap() == *e;
                 }
