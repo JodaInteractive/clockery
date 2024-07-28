@@ -43,11 +43,20 @@ func NewAwsStack(scope constructs.Construct, id string, props *ClockeryStackProp
 
 	api := awsapigateway.NewRestApi(stack, jsii.String("ClockeryLeaderboardApi"), &awsapigateway.RestApiProps{
 		RestApiName: jsii.String("ClockeryLeaderboardApi"),
+		DefaultCorsPreflightOptions: &awsapigateway.CorsOptions{
+			AllowOrigins: awsapigateway.Cors_ALL_ORIGINS(),
+			AllowMethods: awsapigateway.Cors_ALL_METHODS(),
+			},
 	})
 
 	resource := api.Root().AddResource(
 		jsii.String("leaderboard"), 
-		&awsapigateway.ResourceOptions{},
+		&awsapigateway.ResourceOptions{
+			DefaultCorsPreflightOptions: &awsapigateway.CorsOptions{
+				AllowOrigins: awsapigateway.Cors_ALL_ORIGINS(),
+				AllowMethods: awsapigateway.Cors_ALL_METHODS(),
+			},
+		},
 	)
 	
 	resource.AddMethod(

@@ -60,6 +60,9 @@ func HandleRequest(ctx context.Context) (*events.APIGatewayProxyResponse, error)
 	}
 
 	return &events.APIGatewayProxyResponse{
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin": "*",
+			},
 		StatusCode: 200,
 		Body: string(body),
 	}, nil
