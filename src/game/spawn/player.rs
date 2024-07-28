@@ -88,33 +88,43 @@ fn oil_leak(
     match controller.oil_level {
         5.0..=15.0 => {
             *image = images[&ImageKey::Oil10].clone_weak();
+            sprite.custom_size = Some(Vec2::new(64.0, 100.0));
         }
         15.0..=25.0 => {
             *image = images[&ImageKey::Oil20].clone_weak();
+            sprite.custom_size = Some(Vec2::new(64.0, 100.0));
         }
         25.0..=35.0 => {
             *image = images[&ImageKey::Oil30].clone_weak();
+            sprite.custom_size = Some(Vec2::new(64.0, 100.0));
         }
         35.0..=45.0 => {
             *image = images[&ImageKey::Oil40].clone_weak();
+            sprite.custom_size = Some(Vec2::new(64.0, 100.0));
         }
         45.0..=55.0 => {
             *image = images[&ImageKey::Oil50].clone_weak();
+            sprite.custom_size = Some(Vec2::new(64.0, 100.0));
         }
         55.0..=65.0 => {
             *image = images[&ImageKey::Oil60].clone_weak();
+            sprite.custom_size = Some(Vec2::new(64.0, 100.0));
         }
         65.0..=75.0 => {
             *image = images[&ImageKey::Oil70].clone_weak();
+            sprite.custom_size = Some(Vec2::new(64.0, 100.0));
         }
         75.0..=85.0 => {
             *image = images[&ImageKey::Oil80].clone_weak();
+            sprite.custom_size = Some(Vec2::new(64.0, 100.0));
         }
         85.0..=95.0 => {
             *image = images[&ImageKey::Oil90].clone_weak();
+            sprite.custom_size = Some(Vec2::new(64.0, 100.0));
         }
         95.0..=100.0 => {
             *image = images[&ImageKey::OilFull].clone_weak();
+            sprite.custom_size = Some(Vec2::new(64.0, 100.0));
         }
         _ => {
             // *image = images[&ImageKey::OilEmpty].clone_weak();
