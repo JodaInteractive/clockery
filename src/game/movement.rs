@@ -70,31 +70,33 @@ fn movement(
     // pick up clock
     if input.just_pressed(KeyCode::Space) && controller.index != 6 {
         if controller.held_clock.is_some() {
-            let clock_count = clocks
-                .iter_mut()
-                .filter(|(_, t, _)| t.translation.x == position.x)
-                .count();
-            if clock_count == 1 {
-                let clock = clocks
+            if controller.index != 0 {
+                let clock_count = clocks
                     .iter_mut()
-                    .find(|(e, _, _)| *e == controller.held_clock.unwrap());
-                if clock.is_some() {
-                    let mut clock = clock.unwrap();
-                    clock.1.translation.y = position.y;
-                    controller.held_clock = None;
+                    .filter(|(_, t, _)| t.translation.x == position.x)
+                    .count();
+                if clock_count == 1 {
+                    let clock = clocks
+                        .iter_mut()
+                        .find(|(e, _, _)| *e == controller.held_clock.unwrap());
+                    if clock.is_some() {
+                        let mut clock = clock.unwrap();
+                        clock.1.translation.y = position.y;
+                        controller.held_clock = None;
+                    }
+                }
+                let r = rand::random::<f32>();
+                if r < 0.25 {
+                    commands.trigger(PlaySfx::Key(SfxKey::ClockDown1));
+                } else if r < 0.5 {
+                    commands.trigger(PlaySfx::Key(SfxKey::ClockDown2));
+                } else if r < 0.75 {
+                    commands.trigger(PlaySfx::Key(SfxKey::ClockDown3));
+                } else {
+                    commands.trigger(PlaySfx::Key(SfxKey::ClockDown4));
                 }
             }
-            let r = rand::random::<f32>();
-            if r < 0.25 {
-                commands.trigger(PlaySfx::Key(SfxKey::ClockDown1));
-            } else if r < 0.5 {
-                commands.trigger(PlaySfx::Key(SfxKey::ClockDown2));
-            } else if r < 0.75 {
-                commands.trigger(PlaySfx::Key(SfxKey::ClockDown3));
-            } else {
-                commands.trigger(PlaySfx::Key(SfxKey::ClockDown4));
-            }
-        } else if controller.held_clock.is_none() {
+        } else {
             let target_clock = clocks
                 .iter_mut()
                 .find(|(_, t, _)| t.translation.x == position.x);
