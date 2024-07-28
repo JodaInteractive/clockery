@@ -45,6 +45,9 @@ fn oil_drink(
     input: Res<ButtonInput<KeyCode>>,
 ) {
     let mut controller = control_query.single_mut();
+    if controller.held_clock.is_some() {
+        return;
+    }
     if controller.index != 6 || !input.pressed(KeyCode::Space) {
         commands.trigger(StopLoopingSfx::Key(SfxKey::OilDrink));
         return;

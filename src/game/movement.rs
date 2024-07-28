@@ -68,7 +68,7 @@ fn movement(
     };
 
     // pick up clock
-    if input.just_pressed(KeyCode::Space) {
+    if input.just_pressed(KeyCode::Space) && controller.index != 6 {
         if controller.held_clock.is_some() {
             let clock_count = clocks
                 .iter_mut()
@@ -94,7 +94,7 @@ fn movement(
             } else {
                 commands.trigger(PlaySfx::Key(SfxKey::ClockDown4));
             }
-        } else {
+        } else if controller.held_clock.is_none() {
             let target_clock = clocks
                 .iter_mut()
                 .find(|(_, t, _)| t.translation.x == position.x);
@@ -120,6 +120,7 @@ fn movement(
         if held_clock.is_some() {
             let mut clock = held_clock.unwrap();
             clock.1.translation.x = transform.translation.x;
+            clock.1.translation.y = position.y + 30.0;
         }
     }
 }
