@@ -39,7 +39,10 @@ pub(super) fn plugin(app: &mut App) {
 
     app.register_request_type::<Vec<LeaderboardRecord>>();
     app.register_request_type::<LeaderboardBody>();
-    app.add_systems(Update, handle_response);
+    app.add_systems(
+        Update,
+        handle_response.run_if(in_state(PlayingState::GameOver)),
+    );
 }
 
 fn enter_playing(mut commands: Commands, mut next_state: ResMut<NextState<PlayingState>>) {
@@ -310,10 +313,10 @@ fn game_over(
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct LeaderboardRecord {
-    id: String,
-    name: String,
-    score: f32,
+pub struct LeaderboardRecord {
+    pub id: String,
+    pub name: String,
+    pub score: f32,
 }
 
 pub fn submit_score(
@@ -330,7 +333,7 @@ pub fn submit_score(
     );
 }
 
-fn get_scores(mut ev_request: EventWriter<TypedRequest<Vec<LeaderboardRecord>>>) {
+pub fn get_scores(mut ev_request: EventWriter<TypedRequest<Vec<LeaderboardRecord>>>) {
     ev_request.send(
         HttpClient::new()
             .get("https://sr5t5qmb4c.execute-api.us-east-1.amazonaws.com/prod/leaderboard")

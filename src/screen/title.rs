@@ -36,6 +36,7 @@ pub enum TitleAction {
     Exit,
     Menu,
     SubmitScore,
+    Leaderboard,
 }
 
 #[derive(Component)]
@@ -152,6 +153,31 @@ fn enter_title(
     ));
 
     commands.spawn((
+        ButtonBundle {
+            style: Style {
+                width: Val::Px(213.0),
+                height: Val::Px(63.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                align_self: AlignSelf::Center,
+                justify_self: JustifySelf::Center,
+                margin: UiRect {
+                    top: Val::Px(240.0),
+                    ..default()
+                },
+                ..default()
+            },
+            image: UiImage {
+                texture: images[&ImageKey::LeaderboardButton].clone_weak(),
+                ..default()
+            },
+            ..default()
+        },
+        TitleAction::Leaderboard,
+        StateScoped(Screen::Title),
+    ));
+
+    commands.spawn((
         SpriteBundle {
             texture: images[&ImageKey::TitleBackground].clone_weak(),
             transform: Transform::from_translation(Vec3::new(0.0, 0.0, -10.0)),
@@ -167,7 +193,7 @@ fn enter_title(
     commands.spawn((
         SpriteBundle {
             texture: images[&ImageKey::TitleHand].clone_weak(),
-            transform: Transform::from_translation(Vec3::new(-370.0, 0.0, 0.0)),
+            transform: Transform::from_translation(Vec3::new(-370.0, -50.0, 0.0)),
             sprite: Sprite {
                 custom_size: Some(Vec2::new(350.0, 350.0)),
                 ..default()
@@ -269,6 +295,9 @@ fn handle_title_action(
                         }
                     }
                     submit_score(name.0.clone().unwrap(), scoresource.0, &mut ev_request);
+                }
+                TitleAction::Leaderboard => {
+                    next_screen.set(Screen::Leaderboard);
                 }
             }
         }

@@ -23,7 +23,7 @@ pub(super) fn plugin(app: &mut App) {
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Reflect)]
 #[reflect(Component)]
-enum CreditsAction {
+pub enum CreditsAction {
     Back,
 }
 

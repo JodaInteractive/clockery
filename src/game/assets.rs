@@ -71,6 +71,7 @@ pub enum ImageKey {
     StartButton,
     CreditsButton,
     SubmitButton,
+    LeaderboardButton,
 }
 
 impl AssetKey for ImageKey {
@@ -337,6 +338,15 @@ impl FromWorld for HandleMap<ImageKey> {
                 ImageKey::SubmitButton,
                 asset_server.load_with_settings(
                     "images/submit-button.png",
+                    |settings: &mut ImageLoaderSettings| {
+                        settings.sampler = ImageSampler::nearest();
+                    },
+                ),
+            ),
+            (
+                ImageKey::LeaderboardButton,
+                asset_server.load_with_settings(
+                    "images/leaderboard-button.png",
                     |settings: &mut ImageLoaderSettings| {
                         settings.sampler = ImageSampler::nearest();
                     },

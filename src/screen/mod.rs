@@ -1,6 +1,7 @@
 //! The game's main screen states and transitions between them.
 
 mod credits;
+pub mod leaderboard;
 mod loading;
 mod playing;
 mod splash;
@@ -18,6 +19,7 @@ pub(super) fn plugin(app: &mut App) {
         title::plugin,
         credits::plugin,
         playing::plugin,
+        leaderboard::plugin,
     ));
 }
 
@@ -30,6 +32,7 @@ pub enum Screen {
     Title,
     Credits,
     Playing,
+    Leaderboard,
 }
 
 #[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
