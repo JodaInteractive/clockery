@@ -93,7 +93,7 @@ fn game_over(
             transform: Transform::from_translation(Vec3::new(0.0, 0.0, 500.0)),
             sprite: Sprite {
                 custom_size: Some(Vec2::new(1280.0, 720.0)),
-                color: Color::linear_rgba(0.0, 0.0, 0.0, 0.85),
+                color: Color::linear_rgba(0.0, 0.0, 0.0, 0.9),
                 ..default()
             },
             ..default()

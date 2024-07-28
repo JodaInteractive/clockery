@@ -4,7 +4,10 @@ use bevy::prelude::*;
 
 use super::Screen;
 use crate::{
-    game::{assets::SoundtrackKey, audio::soundtrack::PlaySoundtrack},
+    game::{
+        assets::{HandleMap, ImageKey, SoundtrackKey},
+        audio::soundtrack::PlaySoundtrack,
+    },
     ui::prelude::*,
 };
 
@@ -24,7 +27,23 @@ enum CreditsAction {
     Back,
 }
 
-fn enter_credits(mut commands: Commands) {
+fn enter_credits(mut commands: Commands, image_handles: Res<HandleMap<ImageKey>>) {
+    commands.spawn((
+        SpriteBundle {
+            texture: image_handles[&ImageKey::TitleBackground].clone_weak(),
+            transform: Transform {
+                translation: Vec3::new(0.0, -110.0, -100.0),
+                ..default()
+            },
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(1280.0, 1280.0)),
+                ..default()
+            },
+            ..default()
+        },
+        StateScoped(Screen::Credits),
+    ));
+
     commands
         .ui_root()
         .insert(StateScoped(Screen::Credits))

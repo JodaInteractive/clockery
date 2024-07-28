@@ -54,18 +54,21 @@ fn spawn_background(
     mut commands: Commands,
     image_handles: Res<HandleMap<ImageKey>>,
 ) {
-    commands.spawn(SpriteBundle {
-        texture: image_handles[&ImageKey::Background].clone_weak(),
-        transform: Transform {
-            translation: Vec3::new(0.0, -110.0, -100.0),
+    commands.spawn((
+        SpriteBundle {
+            texture: image_handles[&ImageKey::Background].clone_weak(),
+            transform: Transform {
+                translation: Vec3::new(0.0, -110.0, -100.0),
+                ..default()
+            },
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(1280.0, 1280.0)),
+                ..default()
+            },
             ..default()
         },
-        sprite: Sprite {
-            custom_size: Some(Vec2::new(1280.0, 1280.0)),
-            ..default()
-        },
-        ..default()
-    });
+        StateScoped(Screen::Playing),
+    ));
 }
 
 fn spawn_level(
