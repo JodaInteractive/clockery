@@ -135,7 +135,7 @@ fn record_clock_controller(
     mut controller_query: Query<&mut ClockController>,
 ) {
     for mut controller in &mut controller_query {
-        if input.pressed(KeyCode::KeyS) {
+        if input.pressed(KeyCode::KeyS) || input.pressed(KeyCode::ArrowDown) {
             if controller.setting {
                 controller.time_setting += time.delta_seconds();
             } else {
@@ -147,7 +147,7 @@ fn record_clock_controller(
             controller.time_setting = 0.0;
         }
 
-        if input.pressed(KeyCode::KeyW) {
+        if input.pressed(KeyCode::KeyW) || input.pressed(KeyCode::ArrowUp) {
             if controller.winding {
                 controller.time_winding += time.delta_seconds();
             } else {

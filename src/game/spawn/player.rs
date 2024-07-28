@@ -48,7 +48,14 @@ fn oil_drink(
     if controller.held_clock.is_some() {
         return;
     }
-    if controller.index != 6 || !input.pressed(KeyCode::Space) {
+
+    let drink = input.pressed(KeyCode::Space)
+        || input.pressed(KeyCode::KeyW)
+        || input.pressed(KeyCode::KeyS)
+        || input.pressed(KeyCode::ArrowUp)
+        || input.pressed(KeyCode::ArrowDown);
+
+    if controller.index != 6 || !drink {
         commands.trigger(StopLoopingSfx::Key(SfxKey::OilDrink));
         return;
     }
