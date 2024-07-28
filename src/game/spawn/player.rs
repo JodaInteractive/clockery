@@ -139,7 +139,7 @@ fn spawn_player(
             ClockController {
                 index: 1,
                 oil_level: 100.0,
-                oil_leak: 20.0,
+                oil_leak: 1.4,
                 direction: Vec2::new(0.0, 0.0),
                 held_clock: None,
                 setting: false,
