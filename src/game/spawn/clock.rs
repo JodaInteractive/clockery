@@ -348,11 +348,6 @@ fn score_clocks(
                 commands.trigger(SpawnClock);
             }
         }
-        5 => {
-            if score.0 > 1000.0 {
-                commands.trigger(SpawnClock);
-            }
-        }
         _ => {}
     }
     text.sections[0].value = format!("{:.2}", score.0);
